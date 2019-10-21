@@ -1,0 +1,24 @@
+
+TM4c on Turret
+
+TURRET -> TM4C
+No laser packet
+-STRT
+-NONE
+-STOP
+
+Laser Detected packet
+-STRT
+-XGREEN (4 char udec)
+-YGREEN
+-XRED
+-YRED
+-STOP
+
+TM4C -> Turret
+
+Received 4 numbers / none
+-GOOD
+
+Did not receive 4 numbers / non (resend data)
+-RESD
