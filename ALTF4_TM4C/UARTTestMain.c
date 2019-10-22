@@ -64,6 +64,7 @@
 
 #include "tm4c123gh6pm.h"
 #include "UART.h"
+#include "stdlib.h"
 /***********************************************************************************/
 int en = 419;
 volatile float         L_SENSvolts,  R_SENSvolts ; // Sensor volt for left/right ADC
@@ -101,6 +102,14 @@ double Servo_last_error = 0;
 // Stepper Motor vars
 unsigned int STEP_COUNT = 0;
 char step_en = 0x01;
+
+// UART vars
+char STRT[5];
+char STOP[5];
+char test[5];
+
+
+
 
 void ServoPID(void);
 
@@ -302,14 +311,15 @@ void StepOut(){
 	}
 	// 
 }
+
 // Returns a clock cycle count requirement in order to acheive PWM duty cycles 
 // Converts (0-4095) to 5% - 10% duty cycle (or 8000-40000 clock cycles)
-
 unsigned int getServoPosition(volatile unsigned long *ADC_Servo_Value){
     double Add_Value = 2.44;
     return ( Add_Value * (*ADC_Servo_Value)  + LEFT_MOST_VALUE);
 }
 
+// Set servo pwm value using paramter
 void servo_pos(unsigned long val){
 	//unsigned long normalVal;
 	//normalVal = getServoPosition(&val);
@@ -318,6 +328,7 @@ void servo_pos(unsigned long val){
 
 
 /***********************************************************************************/
+// Servo PID loop. Adjust servo pwm output based on a closed feedback loop
 void ServoPID(){
 		// yGreen - yRed = target - current
 		// range [0, 1079]
@@ -356,33 +367,73 @@ void ServoPID(){
 }
 
 /***********************************************************************************/
+// Send carriage return, line feed
 void OutCRLF(void){
     UART_OutChar(CR);
     UART_OutChar(LF);
 }
+/*
+unsigned long UART_InData(void){
+	char character;
+	unsigned long num = 0, len = 0;
+	character = UART_InChar();
+  while(character != CR){
+		 if((character>='0') && (character<='9')) {// character is a number
+
+		 }
+	}
+	
+	
+	return character;
+}*/
+// UART reading and output
 void GetUART(){
 	
 		// Print line to send coordinates
-		UART_OutString("Send Coordinates. PID Control Variable: ");
-		UART_OutUDec(Servo_pwm);
-
-		OutCRLF();
+		//UART_OutString("Send Coordinates. PID Control Variable: ");
+		//UART_OutUDec(Servo_pwm);
+		//OutCRLF();
 		
 		// Change color to red before receiving 4 characters
-		GPIO_PORTF_DATA_R  = 0x02;
+		//GPIO_PORTF_DATA_R  = 0x02;
 		
-		// Get 4 characters through UART
-		xGreen = UART_InUDec();
-		OutCRLF();
-		yGreen = UART_InUDec();
-	  OutCRLF();
-		xRed   = UART_InUDec();
-		OutCRLF();
-		yRed   = UART_InUDec();
-		OutCRLF();
+		// Get first "STRT" string and check if it correct
+		UART_InString(STRT, 5);
+		GPIO_PORTF_DATA_R = 0x00;
+	
+		if(strcmp(STRT, "strt") != 0){
+			GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
+			return;
+		}
+				// Read either none or number
+		UART_InString(test, 5);
+		
+		// Did not get a none
+		if(strcmp(test, "none") != 0){
+			
+			// Convert string to int
+			xGreen = atoi(test);
 
+			// Get 3 remaining numbers through UART			
+			yGreen = UART_InUDec();
+			xRed   = UART_InUDec();
+			yRed   = UART_InUDec();	
+			GPIO_PORTF_DATA_R |= 0x08;
+		}
+		
+		// Get stop
+		UART_InString(STOP, 5);
+		
+		if(strcmp(STOP, "stop") != 0){
+			GPIO_PORTF_DATA_R |= 0x04;
+			return;
+		}
+		
+		
+		GPIO_PORTF_DATA_R = 0x0E; //white if data good
+		
 		// Change color to sky blue after receiving 4 characters
-		GPIO_PORTF_DATA_R  = 0x0C;
+		//GPIO_PORTF_DATA_R  = 0x0C;
 
 	
 }
@@ -425,9 +476,9 @@ int main(void){
 		GetUART();
 		// (x, y) green, (x, y) red coordinates
 		// servo PWM [2000 , 18000]
-		ServoPID();
+		//ServoPID();
 		//StepOut();
-		OutUART();
+		//OutUART();
   }
 }
 
