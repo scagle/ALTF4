@@ -227,7 +227,7 @@ void SysTick_Init(){
 	 // 1 / 16,000,000 * val = sec
 	// output: 
 	 NVIC_ST_CTRL_R = 0; //disable systick
-	 NVIC_ST_RELOAD_R = 200; // 0.5 second interval
+	 NVIC_ST_RELOAD_R = 1600; // 0.5 second interval
 	 NVIC_ST_CURRENT_R = 0; //reset current couter value
 	 NVIC_ST_CTRL_R |= 0x00000007;
  }
@@ -239,14 +239,14 @@ void SysTick_Handler(void){
 		if( GPIO_PORTC_DATA_R & 0x40){// high
 			//set low and decrease counter
 			GPIO_PORTC_DATA_R &= 0xBF;
-			//GPIO_PORTF_DATA_R &= ~0x04;
+			GPIO_PORTF_DATA_R &= ~0x04;
 
 			STEP_COUNT = STEP_COUNT - 1;
 		}
 		else{// low
 			// set high
 			GPIO_PORTC_DATA_R |= 0x40; 
-			//GPIO_PORTF_DATA_R |= 0x04;
+			GPIO_PORTF_DATA_R |= 0x04;
 
 		}
 		
@@ -254,17 +254,18 @@ void SysTick_Handler(void){
 	// Turn off output if count is not high
 	else{
 		GPIO_PORTC_DATA_R &= 0xBF;
+		//GPIO_PORTF_DATA_R &= 0x00;
 	}
 }
  
 void GPIOPortF_Handler(void){
 	 if(GPIO_PORTF_DATA_R & 0x01){//left button
 			step_en = 0x01;
-		  STEP_COUNT = 100;
+		  STEP_COUNT = 10;
 	 }
 	 if(GPIO_PORTF_DATA_R & 0x10){//right button
 			step_en = 0x01;
-		  STEP_COUNT = 2;		 
+		  STEP_COUNT = 20;		 
 	 }
 	 
 	 GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
@@ -278,7 +279,7 @@ void step_left(void){
 	GPIO_PORTC_DATA_R |= 0x80;
 }
 void step_right(void){
-	GPIO_PORTC_DATA_R &= 0x7F;;
+	GPIO_PORTC_DATA_R &= 0x7F;
 }
 // Functions to change step resolution
 /*
@@ -315,14 +316,29 @@ void StepOut(){
 	// Have an output enable & an output counter to send x number of pulses
 	int diff = xRed - xGreen;
 	//step_full();
+	int val_to_step = 0;
+	
+	// Step count range values
+	if(abs(diff) > 400)
+		val_to_step = 40;
+	else if(abs(diff) > 300)
+		val_to_step = 30;
+	else if(abs(diff) > 200)
+		val_to_step = 20;
+	else if(abs(diff) > 100)
+		val_to_step = 15;
+	else 
+		val_to_step = 10;
+	
+	STEP_COUNT = val_to_step;
 	// Check xGreen & xRed
 	if( diff < 0 ){ // xRed is left of xGreen
 		step_right();
-		STEP_COUNT = 10;
+		//STEP_COUNT = 100;
 	}
 	else{ // xRed is right of xGreen
 		step_left();
-		STEP_COUNT = 10;
+		//STEP_COUNT = 100;
 	}
 	// 
 }
@@ -450,7 +466,7 @@ void GetUART(){
 		int temp = 9000;
 
 		UART_InString(STRT, 5);
-		GPIO_PORTF_DATA_R = 0x00;
+		//GPIO_PORTF_DATA_R = 0x00;
 	
 		if(strcmp(STRT, "strt") != 0){
 			GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
@@ -472,7 +488,7 @@ void GetUART(){
 			yGreen = UART_InUDec();
 			xRed   = UART_InUDec();
 			yRed   = UART_InUDec();	
-			GPIO_PORTF_DATA_R |= 0x08;
+			//GPIO_PORTF_DATA_R |= 0x08;
 		}
 		else{// None
 		 LaserOff();
@@ -482,12 +498,12 @@ void GetUART(){
 		UART_InString(STOP, 5);
 		
 		if(strcmp(STOP, "stop") != 0){
-			GPIO_PORTF_DATA_R |= 0x04;
+			//GPIO_PORTF_DATA_R |= 0x04;
 			return;
 		}
 		
 		OutUART();
-		GPIO_PORTF_DATA_R = 0x0E; //white if data good
+		//GPIO_PORTF_DATA_R = 0x0E; //white if data good
 		
 		// Change color to sky blue after receiving 4 characters
 		//GPIO_PORTF_DATA_R  = 0x0C;
@@ -533,7 +549,7 @@ int main(void){
 	UART_Init();
 	UpdateServo(servo_basic);
 	step_sixteenth();
-	
+	//step_half();
   while(1){
 		// Start, get UART character
 		GetUART();
