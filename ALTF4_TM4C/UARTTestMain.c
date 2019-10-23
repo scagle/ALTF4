@@ -33,6 +33,9 @@
  * STEPPER_MOTOR_OUTPUT
  * PC6
  *
+ * Laser Switch Pin
+ *
+ * PB4 : 
  *
  * PC0-3 is JTAG, do NOT USER
  *
@@ -108,12 +111,18 @@ char STRT[5];
 char STOP[5];
 char test[5];
 
+char NoneFlag = 0;
+
 // Servo basic feedback val
 unsigned int servo_basic = 12000;
 
 
 void ServoPID(void);
 void OutUART();
+
+
+void LaserOn(void);
+void LaserOff(void);
 
 /***********************************************************************************/
 void PortA_Init(){ unsigned long delay;
@@ -158,12 +167,12 @@ void PortC_Init(){ unsigned long delay;
 void PortB_Init(){ unsigned long delay;
 	SYSCTL_RCGC2_R    |= 0x00000002;		//activate Port B
 	delay = SYSCTL_RCGC2_R;
-	GPIO_PORTB_CR_R   |= 0xE0;  		    //allow changes PB7,6,5
-	GPIO_PORTB_AMSEL_R&= 0x1F;  			  //disable analog for PB7,6,5
-	GPIO_PORTB_PCTL_R &= 0x000FFFFF; 		//set PB7,6,5 as GPIO
-	GPIO_PORTB_DIR_R  |= 0xE0;					//set PB7,6,5 as output
-	GPIO_PORTB_AFSEL_R&= 0x1F;					//disable alt func PB7,6,5
-	GPIO_PORTB_DEN_R  |= 0xE0;					//digital enable PB7,6,5
+	GPIO_PORTB_CR_R   |= 0xF0;  		    //allow changes PB7,6,5,4
+	GPIO_PORTB_AMSEL_R&= 0x0F;  			  //disable analog for PB7,6,5,4
+	GPIO_PORTB_PCTL_R &= 0x0000FFFF; 		//set PB7,6,5,4 as GPIO
+	GPIO_PORTB_DIR_R  |= 0xF0;					//set PB7,6,5,4 as output
+	GPIO_PORTB_AFSEL_R&= 0x0F;					//disable alt func PB7,6,5,4
+	GPIO_PORTB_DEN_R  |= 0xF0;					//digital enable PB7,6,5,4
 }
 void PortF_Init(){ unsigned long delay;//for LED debugging
 	SYSCTL_RCGC2_R 		|= 0x00000020;		//activate Port F
@@ -218,7 +227,7 @@ void SysTick_Init(){
 	 // 1 / 16,000,000 * val = sec
 	// output: 
 	 NVIC_ST_CTRL_R = 0; //disable systick
-	 NVIC_ST_RELOAD_R = 16000000; // 0.5 second interval
+	 NVIC_ST_RELOAD_R = 200; // 0.5 second interval
 	 NVIC_ST_CURRENT_R = 0; //reset current couter value
 	 NVIC_ST_CTRL_R |= 0x00000007;
  }
@@ -230,24 +239,28 @@ void SysTick_Handler(void){
 		if( GPIO_PORTC_DATA_R & 0x40){// high
 			//set low and decrease counter
 			GPIO_PORTC_DATA_R &= 0xBF;
-			GPIO_PORTF_DATA_R &= ~0x04;
+			//GPIO_PORTF_DATA_R &= ~0x04;
 
 			STEP_COUNT = STEP_COUNT - 1;
 		}
 		else{// low
 			// set high
 			GPIO_PORTC_DATA_R |= 0x40; 
-			GPIO_PORTF_DATA_R |= 0x04;
+			//GPIO_PORTF_DATA_R |= 0x04;
 
 		}
 		
+	}
+	// Turn off output if count is not high
+	else{
+		GPIO_PORTC_DATA_R &= 0xBF;
 	}
 }
  
 void GPIOPortF_Handler(void){
 	 if(GPIO_PORTF_DATA_R & 0x01){//left button
 			step_en = 0x01;
-		  STEP_COUNT = 5;
+		  STEP_COUNT = 100;
 	 }
 	 if(GPIO_PORTF_DATA_R & 0x10){//right button
 			step_en = 0x01;
@@ -301,15 +314,15 @@ void StepOut(){
 	// Send x number of pulses using systick
 	// Have an output enable & an output counter to send x number of pulses
 	int diff = xRed - xGreen;
-	step_full();
+	//step_full();
 	// Check xGreen & xRed
 	if( diff < 0 ){ // xRed is left of xGreen
 		step_right();
-		STEP_COUNT = 100;
+		STEP_COUNT = 10;
 	}
 	else{ // xRed is right of xGreen
 		step_left();
-		STEP_COUNT = 100;
+		STEP_COUNT = 10;
 	}
 	// 
 }
@@ -407,27 +420,21 @@ void ServoFeedback(){
 	
 	UpdateServo(servo_basic);
 }
-
+/***********************************************************************************/
+void LaserOn(){
+	GPIO_PORTB_DATA_R |=  0x10;
+	NoneFlag = 1;
+}
+void LaserOff(){
+	GPIO_PORTB_DATA_R &= ~0x10;
+	NoneFlag = 0;
+}
 /***********************************************************************************/
 // Send carriage return, line feed
 void OutCRLF(void){
     UART_OutChar(CR);
     UART_OutChar(LF);
 }
-/*
-unsigned long UART_InData(void){
-	char character;
-	unsigned long num = 0, len = 0;
-	character = UART_InChar();
-  while(character != CR){
-		 if((character>='0') && (character<='9')) {// character is a number
-
-		 }
-	}
-	
-	
-	return character;
-}*/
 // UART reading and output
 void GetUART(){
 	
@@ -457,7 +464,7 @@ void GetUART(){
 		
 		// Did not get a none
 		if(strcmp(test, "none") != 0){
-			
+			LaserOn();
 			// Convert string to int
 			xGreen = atoi(test);
 
@@ -466,6 +473,9 @@ void GetUART(){
 			xRed   = UART_InUDec();
 			yRed   = UART_InUDec();	
 			GPIO_PORTF_DATA_R |= 0x08;
+		}
+		else{// None
+		 LaserOff();
 		}
 		
 		// Get stop
@@ -522,11 +532,15 @@ int main(void){
 	SysTick_Init();
 	UART_Init();
 	UpdateServo(servo_basic);
+	step_sixteenth();
 	
   while(1){
 		// Start, get UART character
 		GetUART();
-		ServoFeedback();
+		if(NoneFlag){
+			ServoFeedback();
+			StepOut();
+		}
 
 		// (x, y) green, (x, y) red coordinates
 		// servo PWM [2000 , 18000]
