@@ -108,10 +108,12 @@ char STRT[5];
 char STOP[5];
 char test[5];
 
-
+// Servo basic feedback val
+unsigned int servo_basic = 12000;
 
 
 void ServoPID(void);
+void OutUART();
 
 /***********************************************************************************/
 void PortA_Init(){ unsigned long delay;
@@ -328,6 +330,10 @@ void servo_pos(unsigned long val){
 
 
 /***********************************************************************************/
+// Manually set servo values
+void UpdateServo(unsigned int pwm){
+	PWM1_1_CMPB_R = pwm;
+}
 // Servo PID loop. Adjust servo pwm output based on a closed feedback loop
 void ServoPID(){
 		// yGreen - yRed = target - current
@@ -363,7 +369,41 @@ void ServoPID(){
 		}
 		
 		//Set servo value
-		PWM1_1_CMPB_R = Servo_pwm;
+		UpdateServo(Servo_pwm);
+}
+
+
+
+// Basic movement up and down
+void ServoFeedback(){
+	// Assume yGreen and yRed variables already read from UART
+	// Max pwm range of servo [9000, 15000]
+	int diff = yRed - yGreen;
+	int val = 0;
+	
+	// change pwm change value based on range
+	if(abs(diff) > 500)
+		val = 200;
+	else if(abs(diff) > 250)
+		val = 100;
+	else if(abs(diff) > 100)
+		val = 50;
+	else
+		val = 10;
+	
+	// check for negative movement
+	if(diff < 0)
+		val *= -1;
+	
+	servo_basic += val;
+	
+	// check max and min servo values
+	if(servo_basic < 9000)
+		servo_basic = 9000;
+	if(servo_basic > 15000)
+		servo_basic = 15000;
+	
+	UpdateServo(servo_basic);
 }
 
 /***********************************************************************************/
@@ -397,12 +437,17 @@ void GetUART(){
 		// Change color to red before receiving 4 characters
 		//GPIO_PORTF_DATA_R  = 0x02;
 		
-		// Get first "STRT" string and check if it correct
+		// Get first "strt" string and check if it correct
+		int temp = 9000;
+
 		UART_InString(STRT, 5);
 		GPIO_PORTF_DATA_R = 0x00;
 	
 		if(strcmp(STRT, "strt") != 0){
 			GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
+			temp = UART_InUDec();
+			servo_basic = temp;
+			UpdateServo(temp);
 			return;
 		}
 				// Read either none or number
@@ -429,7 +474,7 @@ void GetUART(){
 			return;
 		}
 		
-		
+		OutUART();
 		GPIO_PORTF_DATA_R = 0x0E; //white if data good
 		
 		// Change color to sky blue after receiving 4 characters
@@ -438,6 +483,7 @@ void GetUART(){
 	
 }
 void OutUART(){
+		OutCRLF();
 		// Print pwm value to terminal, check changes
 		GPIO_PORTF_DATA_R  = 0x08; // Green
 		UART_OutString("Coordinates Received. PID Control Variable: ");
@@ -457,7 +503,10 @@ void OutUART(){
 		UART_OutString("yRed: ");
 		UART_OutUDec(yRed);
 		OutCRLF();
-
+	
+		UART_OutString("servo_basic: ");
+		UART_OutUDec(servo_basic);
+		OutCRLF();
 
 }
 
@@ -470,10 +519,13 @@ int main(void){
 	PortF_Init();
 	SysTick_Init();
 	UART_Init();
+	UpdateServo(servo_basic);
 	
   while(1){
 		// Start, get UART character
 		GetUART();
+		ServoFeedback();
+
 		// (x, y) green, (x, y) red coordinates
 		// servo PWM [2000 , 18000]
 		//ServoPID();
