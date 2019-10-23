@@ -357,13 +357,13 @@ void ServoPID(){
 		
 		Servo_pwm = Servo_pwm + Servo_PID;
 		// Servo_pwm value range [9000, 15000], min & maxes
-		if(Servo_pwm < 9000){
-			Servo_pwm = 9000;
+		if(Servo_pwm < 8000){
+			Servo_pwm = 8000;
 			Servo_PID = 0;
 			Servo_error_sum = 0;
 		}
-		else if(Servo_pwm > 15000){
-			Servo_pwm = 15000;
+		else if(Servo_pwm > 16000){
+			Servo_pwm = 40000;
 			Servo_PID = 0;
 			Servo_derivative = 0;
 		}
@@ -382,17 +382,19 @@ void ServoFeedback(){
 	int val = 0;
 	
 	// change pwm change value based on range
-	if(abs(diff) > 500)
+	if(abs(diff) > 200)
 		val = 200;
-	else if(abs(diff) > 250)
+	else if(abs(diff) > 150)
 		val = 100;
 	else if(abs(diff) > 100)
 		val = 50;
+	else if(abs(diff) > 50)
+		val = 25;
 	else
 		val = 10;
 	
 	// check for negative movement
-	if(diff < 0)
+	if(diff > 0)
 		val *= -1;
 	
 	servo_basic += val;

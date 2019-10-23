@@ -219,7 +219,7 @@ Removing Unused input sections from the image.
     Removing pll.o(i.PLL_Init), (124 bytes).
     Removing uart.o(i.UART_InUHex), (104 bytes).
     Removing uart.o(i.UART_OutUHex), (52 bytes).
-    Removing uarttestmain.o(i.ServoPID), (300 bytes).
+    Removing uarttestmain.o(i.ServoPID), (304 bytes).
     Removing uarttestmain.o(i.StepOut), (56 bytes).
     Removing uarttestmain.o(i.getServoPosition), (64 bytes).
     Removing uarttestmain.o(i.servo_pos), (12 bytes).
@@ -232,7 +232,7 @@ Removing Unused input sections from the image.
     Removing uarttestmain.o(i.step_sixteenth), (40 bytes).
     Removing uarttestmain.o(.constdata), (40 bytes).
 
-15 unused section(s) (total 992 bytes) removed from the image.
+15 unused section(s) (total 996 bytes) removed from the image.
 
 ==============================================================================
 
@@ -387,25 +387,25 @@ Image Symbol Table
     i.PortC_Init                             0x000009a4   Section        0  uarttestmain.o(i.PortC_Init)
     i.PortF_Init                             0x00000a30   Section        0  uarttestmain.o(i.PortF_Init)
     i.ServoFeedback                          0x00000bdc   Section        0  uarttestmain.o(i.ServoFeedback)
-    i.SysTick_Handler                        0x00000c70   Section        0  uarttestmain.o(i.SysTick_Handler)
-    i.SysTick_Init                           0x00000ce8   Section        0  uarttestmain.o(i.SysTick_Init)
-    i.UART_InChar                            0x00000d08   Section        0  uart.o(i.UART_InChar)
-    i.UART_InString                          0x00000d20   Section        0  uart.o(i.UART_InString)
-    i.UART_InUDec                            0x00000d62   Section        0  uart.o(i.UART_InUDec)
-    i.UART_Init                              0x00000db0   Section        0  uart.o(i.UART_Init)
-    i.UART_OutChar                           0x00000e48   Section        0  uart.o(i.UART_OutChar)
-    i.UART_OutString                         0x00000e60   Section        0  uart.o(i.UART_OutString)
-    i.UART_OutUDec                           0x00000e76   Section        0  uart.o(i.UART_OutUDec)
-    i.UpdateServo                            0x00000ea0   Section        0  uarttestmain.o(i.UpdateServo)
-    i.main                                   0x00000eac   Section        0  uarttestmain.o(i.main)
-    locale$$code                             0x00000edc   Section       44  lc_ctype_c.o(locale$$code)
-    x$fpl$dfixu                              0x00000f08   Section       90  dfixu.o(x$fpl$dfixu)
-    x$fpl$dnaninf                            0x00000f62   Section      156  dnaninf.o(x$fpl$dnaninf)
-    x$fpl$usenofp                            0x00000ffe   Section        0  usenofp.o(x$fpl$usenofp)
-    locale$$data                             0x00001020   Section      272  lc_ctype_c.o(locale$$data)
-    __lcctype_c_name                         0x00001024   Data           2  lc_ctype_c.o(locale$$data)
-    __lcctype_c_start                        0x0000102c   Data           0  lc_ctype_c.o(locale$$data)
-    __lcctype_c_end                          0x00001130   Data           0  lc_ctype_c.o(locale$$data)
+    i.SysTick_Handler                        0x00000c80   Section        0  uarttestmain.o(i.SysTick_Handler)
+    i.SysTick_Init                           0x00000cf8   Section        0  uarttestmain.o(i.SysTick_Init)
+    i.UART_InChar                            0x00000d18   Section        0  uart.o(i.UART_InChar)
+    i.UART_InString                          0x00000d30   Section        0  uart.o(i.UART_InString)
+    i.UART_InUDec                            0x00000d72   Section        0  uart.o(i.UART_InUDec)
+    i.UART_Init                              0x00000dc0   Section        0  uart.o(i.UART_Init)
+    i.UART_OutChar                           0x00000e58   Section        0  uart.o(i.UART_OutChar)
+    i.UART_OutString                         0x00000e70   Section        0  uart.o(i.UART_OutString)
+    i.UART_OutUDec                           0x00000e86   Section        0  uart.o(i.UART_OutUDec)
+    i.UpdateServo                            0x00000eb0   Section        0  uarttestmain.o(i.UpdateServo)
+    i.main                                   0x00000ebc   Section        0  uarttestmain.o(i.main)
+    locale$$code                             0x00000eec   Section       44  lc_ctype_c.o(locale$$code)
+    x$fpl$dfixu                              0x00000f18   Section       90  dfixu.o(x$fpl$dfixu)
+    x$fpl$dnaninf                            0x00000f72   Section      156  dnaninf.o(x$fpl$dnaninf)
+    x$fpl$usenofp                            0x0000100e   Section        0  usenofp.o(x$fpl$usenofp)
+    locale$$data                             0x00001030   Section      272  lc_ctype_c.o(locale$$data)
+    __lcctype_c_name                         0x00001034   Data           2  lc_ctype_c.o(locale$$data)
+    __lcctype_c_start                        0x0000103c   Data           0  lc_ctype_c.o(locale$$data)
+    __lcctype_c_end                          0x00001140   Data           0  lc_ctype_c.o(locale$$data)
     .data                                    0x20000000   Section      127  uarttestmain.o(.data)
     .bss                                     0x20000080   Section       96  libspace.o(.bss)
     HEAP                                     0x200000e0   Section        0  startup.o(HEAP)
@@ -651,26 +651,26 @@ Image Symbol Table
     PortB_Init                               0x00000929   Thumb Code   100  uarttestmain.o(i.PortB_Init)
     PortC_Init                               0x000009a5   Thumb Code   110  uarttestmain.o(i.PortC_Init)
     PortF_Init                               0x00000a31   Thumb Code   354  uarttestmain.o(i.PortF_Init)
-    ServoFeedback                            0x00000bdd   Thumb Code   134  uarttestmain.o(i.ServoFeedback)
-    SysTick_Handler                          0x00000c71   Thumb Code    98  uarttestmain.o(i.SysTick_Handler)
-    SysTick_Init                             0x00000ce9   Thumb Code    28  uarttestmain.o(i.SysTick_Init)
-    UART_InChar                              0x00000d09   Thumb Code    20  uart.o(i.UART_InChar)
-    UART_InString                            0x00000d21   Thumb Code    66  uart.o(i.UART_InString)
-    UART_InUDec                              0x00000d63   Thumb Code    76  uart.o(i.UART_InUDec)
-    UART_Init                                0x00000db1   Thumb Code   126  uart.o(i.UART_Init)
-    UART_OutChar                             0x00000e49   Thumb Code    18  uart.o(i.UART_OutChar)
-    UART_OutString                           0x00000e61   Thumb Code    22  uart.o(i.UART_OutString)
-    UART_OutUDec                             0x00000e77   Thumb Code    42  uart.o(i.UART_OutUDec)
-    UpdateServo                              0x00000ea1   Thumb Code     6  uarttestmain.o(i.UpdateServo)
-    main                                     0x00000ead   Thumb Code    44  uarttestmain.o(i.main)
-    _get_lc_ctype                            0x00000edd   Thumb Code    44  lc_ctype_c.o(locale$$code)
-    __aeabi_d2uiz                            0x00000f09   Thumb Code     0  dfixu.o(x$fpl$dfixu)
-    _dfixu                                   0x00000f09   Thumb Code    90  dfixu.o(x$fpl$dfixu)
-    __fpl_dnaninf                            0x00000f63   Thumb Code   156  dnaninf.o(x$fpl$dnaninf)
-    __I$use$fp                               0x00000ffe   Number         0  usenofp.o(x$fpl$usenofp)
-    Region$$Table$$Base                      0x00001000   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x00001020   Number         0  anon$$obj.o(Region$$Table)
-    __ctype                                  0x0000102d   Data           0  lc_ctype_c.o(locale$$data)
+    ServoFeedback                            0x00000bdd   Thumb Code   150  uarttestmain.o(i.ServoFeedback)
+    SysTick_Handler                          0x00000c81   Thumb Code    98  uarttestmain.o(i.SysTick_Handler)
+    SysTick_Init                             0x00000cf9   Thumb Code    28  uarttestmain.o(i.SysTick_Init)
+    UART_InChar                              0x00000d19   Thumb Code    20  uart.o(i.UART_InChar)
+    UART_InString                            0x00000d31   Thumb Code    66  uart.o(i.UART_InString)
+    UART_InUDec                              0x00000d73   Thumb Code    76  uart.o(i.UART_InUDec)
+    UART_Init                                0x00000dc1   Thumb Code   126  uart.o(i.UART_Init)
+    UART_OutChar                             0x00000e59   Thumb Code    18  uart.o(i.UART_OutChar)
+    UART_OutString                           0x00000e71   Thumb Code    22  uart.o(i.UART_OutString)
+    UART_OutUDec                             0x00000e87   Thumb Code    42  uart.o(i.UART_OutUDec)
+    UpdateServo                              0x00000eb1   Thumb Code     6  uarttestmain.o(i.UpdateServo)
+    main                                     0x00000ebd   Thumb Code    44  uarttestmain.o(i.main)
+    _get_lc_ctype                            0x00000eed   Thumb Code    44  lc_ctype_c.o(locale$$code)
+    __aeabi_d2uiz                            0x00000f19   Thumb Code     0  dfixu.o(x$fpl$dfixu)
+    _dfixu                                   0x00000f19   Thumb Code    90  dfixu.o(x$fpl$dfixu)
+    __fpl_dnaninf                            0x00000f73   Thumb Code   156  dnaninf.o(x$fpl$dnaninf)
+    __I$use$fp                               0x0000100e   Number         0  usenofp.o(x$fpl$usenofp)
+    Region$$Table$$Base                      0x00001010   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x00001030   Number         0  anon$$obj.o(Region$$Table)
+    __ctype                                  0x0000103d   Data           0  lc_ctype_c.o(locale$$data)
     en                                       0x20000000   Data           4  uarttestmain.o(.data)
     Servo_PID                                0x20000008   Data           8  uarttestmain.o(.data)
     Servo_pwm                                0x20000010   Data           8  uarttestmain.o(.data)
@@ -706,9 +706,9 @@ Memory Map of the image
 
   Image Entry point : 0x0000026d
 
-  Load Region LR_1 (Base: 0x00000000, Size: 0x000011b0, Max: 0xffffffff, ABSOLUTE)
+  Load Region LR_1 (Base: 0x00000000, Size: 0x000011c0, Max: 0xffffffff, ABSOLUTE)
 
-    Execution Region ER_RO (Base: 0x00000000, Size: 0x00001130, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_RO (Base: 0x00000000, Size: 0x00001140, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
@@ -786,26 +786,26 @@ Memory Map of the image
     0x00000928   0x0000007c   Code   RO           99    i.PortB_Init        uarttestmain.o
     0x000009a4   0x0000008c   Code   RO          100    i.PortC_Init        uarttestmain.o
     0x00000a30   0x000001ac   Code   RO          101    i.PortF_Init        uarttestmain.o
-    0x00000bdc   0x00000094   Code   RO          102    i.ServoFeedback     uarttestmain.o
-    0x00000c70   0x00000078   Code   RO          105    i.SysTick_Handler   uarttestmain.o
-    0x00000ce8   0x00000020   Code   RO          106    i.SysTick_Init      uarttestmain.o
-    0x00000d08   0x00000018   Code   RO           28    i.UART_InChar       uart.o
-    0x00000d20   0x00000042   Code   RO           29    i.UART_InString     uart.o
-    0x00000d62   0x0000004c   Code   RO           30    i.UART_InUDec       uart.o
-    0x00000dae   0x00000002   PAD
-    0x00000db0   0x00000098   Code   RO           32    i.UART_Init         uart.o
-    0x00000e48   0x00000018   Code   RO           33    i.UART_OutChar      uart.o
-    0x00000e60   0x00000016   Code   RO           34    i.UART_OutString    uart.o
-    0x00000e76   0x0000002a   Code   RO           35    i.UART_OutUDec      uart.o
-    0x00000ea0   0x0000000c   Code   RO          107    i.UpdateServo       uarttestmain.o
-    0x00000eac   0x00000030   Code   RO          109    i.main              uarttestmain.o
-    0x00000edc   0x0000002c   Code   RO          330    locale$$code        c_w.l(lc_ctype_c.o)
-    0x00000f08   0x0000005a   Code   RO          267    x$fpl$dfixu         fz_ws.l(dfixu.o)
-    0x00000f62   0x0000009c   Code   RO          293    x$fpl$dnaninf       fz_ws.l(dnaninf.o)
-    0x00000ffe   0x00000000   Code   RO          297    x$fpl$usenofp       fz_ws.l(usenofp.o)
-    0x00000ffe   0x00000002   PAD
-    0x00001000   0x00000020   Data   RO          461    Region$$Table       anon$$obj.o
-    0x00001020   0x00000110   Data   RO          329    locale$$data        c_w.l(lc_ctype_c.o)
+    0x00000bdc   0x000000a4   Code   RO          102    i.ServoFeedback     uarttestmain.o
+    0x00000c80   0x00000078   Code   RO          105    i.SysTick_Handler   uarttestmain.o
+    0x00000cf8   0x00000020   Code   RO          106    i.SysTick_Init      uarttestmain.o
+    0x00000d18   0x00000018   Code   RO           28    i.UART_InChar       uart.o
+    0x00000d30   0x00000042   Code   RO           29    i.UART_InString     uart.o
+    0x00000d72   0x0000004c   Code   RO           30    i.UART_InUDec       uart.o
+    0x00000dbe   0x00000002   PAD
+    0x00000dc0   0x00000098   Code   RO           32    i.UART_Init         uart.o
+    0x00000e58   0x00000018   Code   RO           33    i.UART_OutChar      uart.o
+    0x00000e70   0x00000016   Code   RO           34    i.UART_OutString    uart.o
+    0x00000e86   0x0000002a   Code   RO           35    i.UART_OutUDec      uart.o
+    0x00000eb0   0x0000000c   Code   RO          107    i.UpdateServo       uarttestmain.o
+    0x00000ebc   0x00000030   Code   RO          109    i.main              uarttestmain.o
+    0x00000eec   0x0000002c   Code   RO          330    locale$$code        c_w.l(lc_ctype_c.o)
+    0x00000f18   0x0000005a   Code   RO          267    x$fpl$dfixu         fz_ws.l(dfixu.o)
+    0x00000f72   0x0000009c   Code   RO          293    x$fpl$dnaninf       fz_ws.l(dnaninf.o)
+    0x0000100e   0x00000000   Code   RO          297    x$fpl$usenofp       fz_ws.l(usenofp.o)
+    0x0000100e   0x00000002   PAD
+    0x00001010   0x00000020   Data   RO          461    Region$$Table       anon$$obj.o
+    0x00001030   0x00000110   Data   RO          329    locale$$data        c_w.l(lc_ctype_c.o)
 
 
     Execution Region ER_RW (Base: 0x20000000, Size: 0x00000080, Max: 0xffffffff, ABSOLUTE)
@@ -834,10 +834,10 @@ Image component sizes
          0          0          0          0          0       1444   pll.o
        692        632          0          0       1024        892   startup.o
        406         36          0          0          0       3099   uart.o
-      1928        440          0        127          0       7219   uarttestmain.o
+      1944        440          0        127          0       7231   uarttestmain.o
 
     ----------------------------------------------------------------------
-      3028       1108         32        128       1024      12654   Object Totals
+      3044       1108         32        128       1024      12666   Object Totals
          0          0         32          0          0          0   (incl. Generated)
          2          0          0          1          0          0   (incl. Padding)
 
@@ -899,15 +899,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-      4096       1154        304        128       1120      12330   Grand Totals
-      4096       1154        304        128       1120      12330   ELF Image Totals
-      4096       1154        304        128          0          0   ROM Totals
+      4112       1154        304        128       1120      12342   Grand Totals
+      4112       1154        304        128       1120      12342   ELF Image Totals
+      4112       1154        304        128          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                 4400 (   4.30kB)
+    Total RO  Size (Code + RO Data)                 4416 (   4.31kB)
     Total RW  Size (RW Data + ZI Data)              1248 (   1.22kB)
-    Total ROM Size (Code + RO Data + RW Data)       4528 (   4.42kB)
+    Total ROM Size (Code + RO Data + RW Data)       4544 (   4.44kB)
 
 ==============================================================================
 
