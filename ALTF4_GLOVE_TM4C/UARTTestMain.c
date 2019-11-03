@@ -3,32 +3,13 @@
  *
  * Test file glove
  *
+ * PB0 : Transistor Control to LASER
+ * PB1 : Input for
  *
- *
- * Pinout:
- *
- * STEP: PD0 - M0PWM6
- *
- *-SERV: PA7 PWM Signal controls servo direction
- *-DIR : PC7 Direction of motor, cw & ccw
- * 
- * MS1 : PB5 Controls stepping of motor
- * MS2 : PB6 
- * MS3 : PB7
- * 
- *-PF4 : sw2 - changes motor resolution
- *-PF0 : sw1 - changes motor direction
- *
- *-PF1-3: status LEDs
- *
- * TODO: Add ADC Input for 3 inputs
- * 1st Input: Val for servo. 
- * 2nd Input: Val for stepper motor
- * 3rd Input: Val for speed for stepper motor
  *
  * ADC Inputs
  *
- * PE1 - AIN2
+ * PE1 - AIN2 - Flex Sensor Input
  * PE4 - AIN9
  * PE5 - AIN8
  *
@@ -37,70 +18,23 @@
 #include "tm4c123gh6pm.h"
 #include "UART.h"
 /***********************************************************************************/
-int en = 419;
-volatile float         L_SENSvolts,  R_SENSvolts ; // Sensor volt for left/right ADC
-volatile unsigned long L_ADCvalue,  R_ADCvalue   ; // Sensor for forward left/right IR ADC
-volatile unsigned long IRleft, IRright, POTmeter ; // ADC input variables
-
-// Servos
-const unsigned int LEFT_MOST_VALUE = 8000;   // 5%  Duty
-const unsigned int RIGHT_MOST_VALUE = 40000; // 10% Duty
-const unsigned int RANGE = RIGHT_MOST_VALUE - LEFT_MOST_VALUE;
 const unsigned int MAX_ADC = 4095;
 
-unsigned int getServoPosition(volatile unsigned long *ADC_Servo_Value);
-
-
 /***********************************************************************************/
-void PortA_Init(){ unsigned long delay;
-	SYSCTL_RCGCPWM_R  |= 0x02;					//activate PWM module 1
-	SYSCTL_RCGC2_R 		|= 0x00000001;		//activate Port A
-	delay = SYSCTL_RCGC2_R;
-	GPIO_PORTA_CR_R	  |= 0x80;					//allow changes to PA7
-	GPIO_PORTA_AMSEL_R&= 0xEF;					//disable analog for PA7
-	GPIO_PORTA_PCTL_R &= 0x0FFFFFFF; 		//set PA7 as PWM output
-	GPIO_PORTA_PCTL_R |= 0x50000000;
-	GPIO_PORTA_DIR_R  |= 0x80;					//set PA7 as output
-	GPIO_PORTA_AFSEL_R|= 0x80;					//enable alt func PA7
-	GPIO_PORTA_DEN_R  |= 0x80;					//digital enable PA7
-	
-	SYSCTL_RCGCPWM_R  |= 0x02;					//activate PWM M1
-	SYSCTL_RCGCGPIO_R |= 0x01; 					//clock for Port A
-	SYSCTL_RCC_R 			&=~0x00100000; 		//disable divider
-	
-	PWM1_1_CTL_R 			 = 0x00;					//disable PWM for initializations
-	PWM1_1_GENB_R     |= 0x00000C08; 		//drive PWM b high, invert pwm b
-	PWM1_1_LOAD_R 		 = 320000-1; 			  //needed for 20ms period
-	PWM1_1_CMPB_R 		 = 8000; 				//0.5ms duty cycle
-	PWM1_1_CTL_R 			&=~0x00000010; 	//set to countdown mode
-	PWM1_1_CTL_R 			|= 0x00000001; 		//enable generator
-	
-	PWM1_ENABLE_R 		|= 0x08; //enable output 3 of module 1
-	
-}
-
-void PortC_Init(){ unsigned long delay;
-	SYSCTL_RCGC2_R 		 |= 0x00000004; //intialize port C
-	delay = SYSCTL_RCGC2_R;
-	GPIO_PORTC_LOCK_R   = 0x4C4F434B; //unlock Port C
-	GPIO_PORTC_CR_R    |= 0x80;  		  //allow changes to PC7
-	GPIO_PORTC_AMSEL_R &= 0xEF;       //disable analog for PC7
-	GPIO_PORTC_PCTL_R  &= 0x0FFFFFFF; //set PC7 to GPIO
-	GPIO_PORTC_DIR_R   |= 0x80;				//set PC7 as output
-	GPIO_PORTC_AFSEL_R &= 0xEF;				//disable alt func PC7
-	GPIO_PORTC_DEN_R   |= 0x80;				//digital enable PC7
-}	
  
 void PortB_Init(){ unsigned long delay;
 	SYSCTL_RCGC2_R    |= 0x00000002;		//activate Port B
 	delay = SYSCTL_RCGC2_R;
-	GPIO_PORTB_CR_R   |= 0xE0;  		    //allow changes PB7,6,5
-	GPIO_PORTB_AMSEL_R&= 0x1F;  			  //disable analog for PB7,6,5
-	GPIO_PORTB_PCTL_R &= 0x000FFFFF; 		//set PB7,6,5 as GPIO
-	GPIO_PORTB_DIR_R  |= 0xE0;					//set PB7,6,5 as output
-	GPIO_PORTB_AFSEL_R&= 0x1F;					//disable alt func PB7,6,5
-	GPIO_PORTB_DEN_R  |= 0xE0;					//digital enable PB7,6,5
+	delay++;
+	GPIO_PORTB_CR_R   |= 0x03;  		    //allow changes PB1,0
+	GPIO_PORTB_AMSEL_R&= 0xFC;  			  //disable analog for PB1,0
+	GPIO_PORTB_PCTL_R &= 0xFFFFFF00; 		//set PB1, 0 as GPIO
+	GPIO_PORTB_DIR_R  |= 0x01;					//set PB0 as output
+	GPIO_PORTB_DIR_R  &= 0xFD;					//set PB1 as  input
+	GPIO_PORTB_AFSEL_R&= 0xFC;					//disable alt func PB1,0
+	GPIO_PORTB_DEN_R  |= 0x03;					//digital enable PB1, 0
 }
+
 void PortF_Init(){ unsigned long delay;//for LED debugging
 	SYSCTL_RCGC2_R 		|= 0x00000020;		//activate Port F
 	delay = SYSCTL_RCGC2_R; 
@@ -149,6 +83,41 @@ void PortF_Init(){ unsigned long delay;//for LED debugging
 	PWM1_ENABLE_R |= 0x20; 				// enable M1 PWM5 output
 	
  }
+
+void Timer1_Init(void){
+    SYSCTL_RCGCTIMER_R |= 0x02;   // 0) activate TIMER1
+    //PeriodicTask = task;          // user function
+    TIMER1_CTL_R &= ~0x00000001;  // 1) disable TIMER1A during setup
+    TIMER1_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
+    TIMER1_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
+    TIMER1_TAILR_R = 1600000;    // 4) reload value
+    TIMER1_TAPR_R = 0;            // 5) bus clock resolution
+    TIMER1_ICR_R = 0x00000001;    // 6) clear TIMER1A timeout flag
+    TIMER1_IMR_R = 0x00000001;    // 7) arm timeout interrupt
+    NVIC_PRI5_R = (NVIC_PRI5_R&0xFFFF00FF)|0x00008000; // 8) priority 4
+    // interrupts enabled in the main program after all devices initialized
+    // vector number 37, interrupt number 21
+    NVIC_EN0_R = 1<<21;           // 9) enable IRQ 21 in NVIC
+    TIMER1_CTL_R |= 0x00000001;    // 10) enable TIMER1A
+}
+
+void BT_Init(void){ unsigned long delay;
+    SYSCTL_RCGC1_R     |= SYSCTL_RCGC1_UART2; // activate UART2
+    SYSCTL_RCGC2_R     |= SYSCTL_RCGC2_GPIOD; // activate port D
+		delay = SYSCTL_RCGC2_R; 
+		delay++;
+		UART2_CTL_R        &= ~UART_CTL_UARTEN;   // disable UART
+    UART2_IBRD_R        = 81;                 // IBRD = int(50,000,000 / (16 * 115,200)) = int(27.1267)
+    UART2_FBRD_R        = 24;                 // FBRD = int(0.1267 * 64 + 0.5) = 8
+    // 8 bit word length (no parity bits, one stop bit, FIFOs)
+    UART2_LCRH_R        = (UART_LCRH_WLEN_8|UART_LCRH_FEN);
+    UART2_CTL_R        |= UART_CTL_UARTEN;    // enable UART
+    GPIO_PORTD_AFSEL_R |= 0xC0;               // enable alt funct on PD7-6
+    GPIO_PORTD_DEN_R   |= 0xC0;               // enable digital I/O on PD7-6
+    // configure PD7-6 as UART
+    GPIO_PORTD_PCTL_R   = (GPIO_PORTD_PCTL_R&0x00FFFFFF)+0x11000000;
+    GPIO_PORTD_AMSEL_R &= ~0xC0;              // disable analog functionality on PD
+}
 
 void SysTick_Init(){
 	 NVIC_ST_CTRL_R = 0; //disable systick
@@ -238,27 +207,6 @@ void ReadADCMedianFilter(volatile unsigned long *ain2, volatile unsigned long *a
 
 
 /***********************************************************************************/ 
-void LED_on(){
-	//PWM1_1_CMPB_R = 40000;//max
-	PWM1_1_CMPB_R = 40000;
-
-}
-void LED_off(){
-	PWM1_1_CMPB_R = 0;
-}
-void LED_max(){
-	PWM1_1_CMPB_R = 8000;//min
-
-}
-
-void LED(int x){
-	PWM1_1_CMPB_R = x;
-}
-
-
-// 0^    -   180^
-// 8000  -  40000
-/***********************************************************************************/
 void SysTick_Handler(void){
 	
 	//GPIO_PORTA_DATA_R = GPIO_PORTA_DATA_R ^ 0x80;	
@@ -267,98 +215,51 @@ void SysTick_Handler(void){
  
 void GPIOPortF_Handler(void){
 	 if(GPIO_PORTF_DATA_R & 0x01){//left button
-		 GPIO_PORTC_DATA_R  = 0x7F;
+			
 		 
 	 }
 	 if(GPIO_PORTF_DATA_R & 0x10){//right button
-		 GPIO_PORTC_DATA_R  = 0x80;
 		 
 	 }
 	 
 	 GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
-	 
  }
  
 
-/***********************************************************************************/
-//Change 3 bit outputs to stepper motor driver
-void step_speed(int val){//PB 7,6,5
-	if(val >=  0 & val <800){// 1/16
-		//GPIO_PORTF_DATA_R = 0;//off
-		GPIO_PORTB_DATA_R &= 0x1F;
-		GPIO_PORTB_DATA_R |= 0xE0;		
-	}
-	
-	if(val >=800 & val <1600){// 1/8
-		//GPIO_PORTF_DATA_R = 0x02;//red
-		GPIO_PORTB_DATA_R &= 0x1F;
-		GPIO_PORTB_DATA_R |= 0x60;
-	}
-	
-	if(val >=1600 & val <2400){// 1/4
-		//GPIO_PORTF_DATA_R = 0x04;//blue
-		GPIO_PORTB_DATA_R &= 0x1F;
-		GPIO_PORTB_DATA_R |= 0x40;		
-	}
-	if(val >=2400 & val <3200){// 1/2
-		//GPIO_PORTF_DATA_R = 0x08;//green
-		GPIO_PORTB_DATA_R &= 0x1F;
-		GPIO_PORTB_DATA_R |= 0x20;	
-	}
-	
-	if(val >=3200){// 1/1
-		//GPIO_PORTF_DATA_R = 0x0A;//yellow
-		GPIO_PORTB_DATA_R &= 0x1F;
-	}
-} 
+void Timer1A_Handler(void){ // 10Hz   
+    if( GPIO_PORTB_DATA_R & 0x02){ // Pressure sensor has been pressed
+			GPIO_PORTF_DATA_R = 0x04;
+		}
+		else{
+			GPIO_PORTF_DATA_R = 0x02;
+		}
 
-void step_dir(int val){//PF1
-	if(val >= 0 & val < 1850){//Rotate Left
-		//Clear
-		GPIO_PORTC_DATA_R  = 0x7F;//Rotate Left
-		PWM1_2_CMPB_R  		 = 800000-1;
-	}
-	if(val >= 1850 & val < 2250){//don't rotate
-		PWM1_2_CMPB_R  		 = 0; //off
-	}
-	if(val >=2250){//led off, right
-		//Set
-		GPIO_PORTC_DATA_R  = 0x80;//Rotate Right
-		PWM1_2_CMPB_R 		 = 800000-1;
-	}
+    TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge TIMER1A timeout
 }
 
-
-// Returns a clock cycle count requirement in order to acheive PWM duty cycles 
-// Converts (0-4095) to 5% - 10% duty cycle (or 8000-40000 clock cycles)
-unsigned int getServoPosition(volatile unsigned long *ADC_Servo_Value){
-    double Add_Value = 2.44;
-    return ( Add_Value * (*ADC_Servo_Value)  + LEFT_MOST_VALUE);
-}
-
-void servo_pos(unsigned long val){
-	unsigned long normalVal;
-	normalVal = getServoPosition(&val);
-	PWM1_1_CMPB_R = normalVal;
-}
-
-
+ /***********************************************************************************/
 //debug code
 int main(void){
-	unsigned long speed, dir, pos;
-
-  PortA_Init();
+	unsigned long flex_input=0, extra1, extra2;
+	Timer1_Init();
 	PortB_Init();
-	PortC_Init();
 	PortF_Init();
 	//SysTick_Init();
 	ADC_Init();
 	
   while(1){
-		ReadADCMedianFilter(&speed, &dir, &pos);
-		step_speed(speed);
-		step_dir(dir);
-		servo_pos(pos);
+		ReadADCMedianFilter(&flex_input, &extra1, &extra2);
+		
+		// test range of values
+		// range 0 to 4095
+		// no flex: ~1280
+		// 		flex: ~1024
+		if(flex_input > 1100){
+			GPIO_PORTB_DATA_R &= 0xFE; // Turn laser off
+		}
+		else{
+			GPIO_PORTB_DATA_R |= 0x01; // Turn laser on
+		}
 		
   }
 }

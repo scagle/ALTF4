@@ -200,7 +200,7 @@
       <Focus>0</Focus>
       <ColumnNumber>11</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>5</TopLine>
+      <TopLine>53</TopLine>
       <CurrentLine>70</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\UART.c</PathWithFileName>
@@ -214,10 +214,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>4</ColumnNumber>
+      <ColumnNumber>34</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>105</TopLine>
-      <CurrentLine>324</CurrentLine>
+      <TopLine>169</TopLine>
+      <CurrentLine>334</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\UARTTestMain.c</PathWithFileName>
       <FilenameWithoutPath>UARTTestMain.c</FilenameWithoutPath>
