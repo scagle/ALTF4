@@ -4,8 +4,10 @@
  * Test file glove
  *
  * PB0 : Transistor Control to LASER
- * PB1 : Input for
+ * PB1 : Input for button, negative edge interrupt 
  *
+ * PD7 : Bluetooth UART
+ * PD6 : Bluetooth UART
  *
  * ADC Inputs
  *
@@ -18,10 +20,11 @@
 #include "tm4c123gh6pm.h"
 #include "UART.h"
 /***********************************************************************************/
+// Constants
 const unsigned int MAX_ADC = 4095;
-
+char LASER_ON = 0x00;
 /***********************************************************************************/
- 
+// Initialization Functions 
 void PortB_Init(){ unsigned long delay;
 	SYSCTL_RCGC2_R    |= 0x00000002;		//activate Port B
 	delay = SYSCTL_RCGC2_R;
@@ -38,6 +41,7 @@ void PortB_Init(){ unsigned long delay;
 void PortF_Init(){ unsigned long delay;//for LED debugging
 	SYSCTL_RCGC2_R 		|= 0x00000020;		//activate Port F
 	delay = SYSCTL_RCGC2_R; 
+	delay++;
 	GPIO_PORTF_LOCK_R = 0x4C4F434B;			//unlock Port F
 	GPIO_PORTF_CR_R	  |= 0x1F;					//allow changes to PF4,3,2,1,0
 	GPIO_PORTF_AMSEL_R&= 0xE0;					//disable analog for PF4,3,2,1,0
@@ -107,8 +111,8 @@ void BT_Init(void){ unsigned long delay;
 		delay = SYSCTL_RCGC2_R; 
 		delay++;
 		UART2_CTL_R        &= ~UART_CTL_UARTEN;   // disable UART
-    UART2_IBRD_R        = 81;                 // IBRD = int(50,000,000 / (16 * 115,200)) = int(27.1267)
-    UART2_FBRD_R        = 24;                 // FBRD = int(0.1267 * 64 + 0.5) = 8
+    UART2_IBRD_R        = 8;                  // IBRD = int(16,000,000 / (16 * 115,200)) = int(8.68056)
+    UART2_FBRD_R        = 55;                 // FBRD = int(0.86056 * 64 + 0.5) = 55
     // 8 bit word length (no parity bits, one stop bit, FIFOs)
     UART2_LCRH_R        = (UART_LCRH_WLEN_8|UART_LCRH_FEN);
     UART2_CTL_R        |= UART_CTL_UARTEN;    // enable UART
@@ -216,22 +220,27 @@ void SysTick_Handler(void){
 void GPIOPortF_Handler(void){
 	 if(GPIO_PORTF_DATA_R & 0x01){//left button
 			
-		 
 	 }
 	 if(GPIO_PORTF_DATA_R & 0x10){//right button
 		 
 	 }
 	 
 	 GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
- }
- 
+} 
 
-void Timer1A_Handler(void){ // 10Hz   
-    if( GPIO_PORTB_DATA_R & 0x02){ // Pressure sensor has been pressed
-			GPIO_PORTF_DATA_R = 0x04;
+void Timer1A_Handler(void){ // 10Hz - check for button input   
+    if( GPIO_PORTB_DATA_R & 0x02){ // Button has been pressed
+			if(LASER_ON){// Only send fire if laser is on
+				GPIO_PORTF_DATA_R  |= 0x08;// Green status light
+				// Bluetooth UART output
+				// TODO:
+				
+				
+			}
 		}
 		else{
-			GPIO_PORTF_DATA_R = 0x02;
+			GPIO_PORTF_DATA_R  &= 0xFB;// Turn Green status light off
+
 		}
 
     TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge TIMER1A timeout
@@ -244,8 +253,9 @@ int main(void){
 	Timer1_Init();
 	PortB_Init();
 	PortF_Init();
-	//SysTick_Init();
 	ADC_Init();
+	BT_Init();
+	// Bluetooth initialization
 	
   while(1){
 		ReadADCMedianFilter(&flex_input, &extra1, &extra2);
@@ -254,11 +264,20 @@ int main(void){
 		// range 0 to 4095
 		// no flex: ~1280
 		// 		flex: ~1024
-		if(flex_input > 1100){
+		
+		// live debug test
+		// no flex: 2770
+		//    flex: 3120
+		if(flex_input > 3100){
+			GPIO_PORTF_DATA_R |= 0x04;
 			GPIO_PORTB_DATA_R &= 0xFE; // Turn laser off
+			LASER_ON = 0x00;
 		}
 		else{
+			GPIO_PORTF_DATA_R &= 0xFB;
 			GPIO_PORTB_DATA_R |= 0x01; // Turn laser on
+			// Laser status flag
+			LASER_ON = 0x01;
 		}
 		
   }
