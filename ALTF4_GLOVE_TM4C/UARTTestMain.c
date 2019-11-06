@@ -19,10 +19,16 @@
 
 #include "tm4c123gh6pm.h"
 #include "UART.h"
+#include "bluetooth.h"
 /***********************************************************************************/
 // Constants
 const unsigned int MAX_ADC = 4095;
 char LASER_ON = 0x00;
+/***********************************************************************************/
+// Flags
+unsigned char adc_check_value_flag = 0;         // Flag set by Timer to signify we need to get a reading from ADC's
+unsigned char fire_flag = 0;                    // Flag to send Fire command ( set every 0.1 seconds or so )
+unsigned char stop_flag = 0;                    // Flag to send Stop command ( set every 0.1 seconds or so )
 /***********************************************************************************/
 // Initialization Functions 
 void PortB_Init(){ unsigned long delay;
@@ -105,24 +111,6 @@ void Timer1_Init(void){
     TIMER1_CTL_R |= 0x00000001;    // 10) enable TIMER1A
 }
 
-void BT_Init(void){ unsigned long delay;
-    SYSCTL_RCGC1_R     |= SYSCTL_RCGC1_UART2; // activate UART2
-    SYSCTL_RCGC2_R     |= SYSCTL_RCGC2_GPIOD; // activate port D
-		delay = SYSCTL_RCGC2_R; 
-		delay++;
-		UART2_CTL_R        &= ~UART_CTL_UARTEN;   // disable UART
-    UART2_IBRD_R        = 8;                  // IBRD = int(16,000,000 / (16 * 115,200)) = int(8.68056)
-    UART2_FBRD_R        = 55;                 // FBRD = int(0.86056 * 64 + 0.5) = 55
-    // 8 bit word length (no parity bits, one stop bit, FIFOs)
-    UART2_LCRH_R        = (UART_LCRH_WLEN_8|UART_LCRH_FEN);
-    UART2_CTL_R        |= UART_CTL_UARTEN;    // enable UART
-    GPIO_PORTD_AFSEL_R |= 0xC0;               // enable alt funct on PD7-6
-    GPIO_PORTD_DEN_R   |= 0xC0;               // enable digital I/O on PD7-6
-    // configure PD7-6 as UART
-    GPIO_PORTD_PCTL_R   = (GPIO_PORTD_PCTL_R&0x00FFFFFF)+0x11000000;
-    GPIO_PORTD_AMSEL_R &= ~0xC0;              // disable analog functionality on PD
-}
-
 /***********************************************************************************/
 void ADC_Init(void){   
     // AIN2 -> (PE1)  POTENTIOMETER
@@ -175,9 +163,6 @@ unsigned long median(unsigned long u1, unsigned long u2, unsigned long u3){
     return(result);
 }
 
- 
- 
-
 void ReadADCMedianFilter(volatile unsigned long *ain2, volatile unsigned long *ain9, volatile unsigned long *ain8){
     // This function samples AIN2 (PE1), AIN9 (PE4), AIN8 (PE5) and
     // returns the results in the corresponding variables.  Some
@@ -202,7 +187,6 @@ void ReadADCMedianFilter(volatile unsigned long *ain2, volatile unsigned long *a
     ain2middle = ain2newest; ain9middle = ain9newest; ain8middle = ain8newest;
 }
 
-
 /***********************************************************************************/ 
 void SysTick_Handler(void){
 	
@@ -211,6 +195,7 @@ void SysTick_Handler(void){
 }
  
 void GPIOPortF_Handler(void){
+
 	 if(GPIO_PORTF_DATA_R & 0x01){//left button
 			
 	 }
@@ -221,21 +206,22 @@ void GPIOPortF_Handler(void){
 	 GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
 } 
 
-void Timer1A_Handler(void){ // 10Hz - check for button input   
+void Timer1A_Handler(void){ // 10Hz - check for button input
+    adc_check_value_flag = 1;     // Lets main check the adc values
     if( GPIO_PORTB_DATA_R & 0x02){ // Button has not been pressed
-			if(LASER_ON){// Only send fire if laser is on
-				GPIO_PORTF_DATA_R  &= 0xFB;// Turn Green status light off
-				// Bluetooth UART output
-				// TODO:
-				
-				
-			}
-		}
-		else{
-			GPIO_PORTF_DATA_R  |= 0x08;// Green status light
-
-
-		}
+      GPIO_PORTF_DATA_R  &= ~0x08;// Turn Green status light off
+      stop_flag = 1;	// Set fire flag
+    }
+    else{
+        if(LASER_ON){// Only send fire if laser is on
+          GPIO_PORTF_DATA_R  &= ~0x08;// Turn Green status light off
+          fire_flag = 1;  // Set fire flag
+        }
+        else{
+          stop_flag = 1;
+        }
+        GPIO_PORTF_DATA_R  |= 0x08;// Green status light
+    }
 
     TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge TIMER1A timeout
 }
@@ -244,35 +230,60 @@ void Timer1A_Handler(void){ // 10Hz - check for button input
 //debug code
 int main(void){
 	unsigned long flex_input=0, extra1, extra2;
-	Timer1_Init();
 	PortB_Init();
 	PortF_Init();
 	ADC_Init();
-	BT_Init();// Bluetooth initialization
+	BT_Init();  // Bluetooth initialization
+    Timer1_Init();
+
+	EnableInterrupts();
 	
   while(1){
-		ReadADCMedianFilter(&flex_input, &extra1, &extra2);
-		
-		// test range of values
-		// range 0 to 4095
-		// no flex: ~1280
-		// 		flex: ~1024
-		
-		// live debug test
-		// no flex: 2770
-		//    flex: 3120
-		if(flex_input > 3100){
-			GPIO_PORTF_DATA_R |= 0x04;
-			GPIO_PORTB_DATA_R |= 0x01; // Turn laser on
-			LASER_ON = 0x00;
+		if(adc_check_value_flag)
+		{
+			// Read ADC Values
+			ReadADCMedianFilter(&flex_input, &extra1, &extra2);
+			
+			// test range of values
+			// range 0 to 4095
+			// no flex: ~1280
+			// 		flex: ~1024
+			
+			// live debug test
+			// no flex: 2770
+			//    flex: 3120
+			// Check Flex inputs
+			if(flex_input > 3100){
+				GPIO_PORTF_DATA_R |= 0x04;
+				GPIO_PORTB_DATA_R |= 0x01; // Turn laser on
+				LASER_ON = 0x01;
+			}
+			else{
+				GPIO_PORTF_DATA_R &= 0xFB;
+				GPIO_PORTB_DATA_R &= 0xFE; // Turn laser off
+				// Laser status flag
+				LASER_ON = 0x00;
+				fire_flag = 0;	// turn fire flag off for good measure
+			}
+
+			// Handle fire event
+			if(fire_flag)
+			{
+				fire_flag = 0;
+				if(LASER_ON)
+				{
+					UART2_OutChar('f');
+				}
+			}
+
+			// Handle stop event
+			if(stop_flag)
+			{
+				stop_flag = 0;
+				UART2_OutChar('s');
+			}
 		}
-		else{
-			GPIO_PORTF_DATA_R &= 0xFB;
-			GPIO_PORTB_DATA_R &= 0xFE; // Turn laser off
-			// Laser status flag
-			LASER_ON = 0x01;
-		}
-		
+		//WaitForInterrupt();
   }
 }
 
