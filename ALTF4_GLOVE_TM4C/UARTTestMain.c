@@ -4,7 +4,7 @@
  * Test file glove
  *
  * PB0 : Transistor Control to LASER
- * PB1 : Input for button, negative edge interrupt 
+ * PB1 : Input for button
  *
  * PD7 : Bluetooth UART
  * PD6 : Bluetooth UART
@@ -12,7 +12,7 @@
  * ADC Inputs
  *
  * PE1 - AIN2 - Flex Sensor Input
- * PE4 - AIN9
+ * PE4 - AIN9 - extra
  * PE5 - AIN8
  *
  */
@@ -123,13 +123,6 @@ void BT_Init(void){ unsigned long delay;
     GPIO_PORTD_AMSEL_R &= ~0xC0;              // disable analog functionality on PD
 }
 
-void SysTick_Init(){
-	 NVIC_ST_CTRL_R = 0; //disable systick
-	 NVIC_ST_RELOAD_R = 0x001F4240; // period
-	 NVIC_ST_CURRENT_R = 0; //reset current couter value
-	 NVIC_ST_CTRL_R |= 0x00000007;
- }
-
 /***********************************************************************************/
 void ADC_Init(void){   
     // AIN2 -> (PE1)  POTENTIOMETER
@@ -229,9 +222,9 @@ void GPIOPortF_Handler(void){
 } 
 
 void Timer1A_Handler(void){ // 10Hz - check for button input   
-    if( GPIO_PORTB_DATA_R & 0x02){ // Button has been pressed
+    if( GPIO_PORTB_DATA_R & 0x02){ // Button has not been pressed
 			if(LASER_ON){// Only send fire if laser is on
-				GPIO_PORTF_DATA_R  |= 0x08;// Green status light
+				GPIO_PORTF_DATA_R  &= 0xFB;// Turn Green status light off
 				// Bluetooth UART output
 				// TODO:
 				
@@ -239,7 +232,8 @@ void Timer1A_Handler(void){ // 10Hz - check for button input
 			}
 		}
 		else{
-			GPIO_PORTF_DATA_R  &= 0xFB;// Turn Green status light off
+			GPIO_PORTF_DATA_R  |= 0x08;// Green status light
+
 
 		}
 
@@ -254,8 +248,7 @@ int main(void){
 	PortB_Init();
 	PortF_Init();
 	ADC_Init();
-	BT_Init();
-	// Bluetooth initialization
+	BT_Init();// Bluetooth initialization
 	
   while(1){
 		ReadADCMedianFilter(&flex_input, &extra1, &extra2);
@@ -270,12 +263,12 @@ int main(void){
 		//    flex: 3120
 		if(flex_input > 3100){
 			GPIO_PORTF_DATA_R |= 0x04;
-			GPIO_PORTB_DATA_R &= 0xFE; // Turn laser off
+			GPIO_PORTB_DATA_R |= 0x01; // Turn laser on
 			LASER_ON = 0x00;
 		}
 		else{
 			GPIO_PORTF_DATA_R &= 0xFB;
-			GPIO_PORTB_DATA_R |= 0x01; // Turn laser on
+			GPIO_PORTB_DATA_R &= 0xFE; // Turn laser off
 			// Laser status flag
 			LASER_ON = 0x01;
 		}
