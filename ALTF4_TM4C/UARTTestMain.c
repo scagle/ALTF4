@@ -195,7 +195,8 @@ void SysTick_Handler(void){
 void GPIOPortF_Handler(void){
 	 if(GPIO_PORTF_DATA_R & 0x01){//left button
 			step_en = 0x01;
-		  STEP_COUNT = 10;
+		  STEP_COUNT = 100;
+			GPIO_PORTF_DATA_R = GPIO_PORTF_DATA_R ^ 0x08;
 	 }
 	 if(GPIO_PORTF_DATA_R & 0x10){//right button
 			// Do nothing for now
@@ -345,7 +346,8 @@ int main(void){
 	UART_Init();
 	
 	UpdateServo(servo_basic);
-	step_thirtysecond();
+	//step_thirtysecond();
+	step_full();
 
   while(1){
 		// Start, get UART character
