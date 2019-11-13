@@ -1,106 +1,47 @@
 /* Jesus Luciano, Steven Cagle, Alex Jong
  * 
  *
- * Test file for stepper motor control
+ * Final Implementation for turret control
  * 
  * Pinout:
  *
- * STEP: PD0 - M0PWM6
- *
- *-SERV: PA7 PWM Signal controls servo direction
- *-DIR : PC7 Direction of motor, cw & ccw
+ * SERV: PA7 PWM Signal controls servo direction
  * 
- * MS1 : PB5 Controls stepping of motor
- * MS2 : PB6 
- * MS3 : PB7
+ * STEP: PC6 Stepping control of motor
+ * DIR : PC7 Direction of motor, cw & ccw
  * 
- *-PF4 : sw2 - changes motor resolution
- *-PF0 : sw1 - changes motor direction
+ * MS0 : PB7 Controls step resolution of motor
+ * MS1 : PB6 
+ * MS2 : PB5
  *
- *-PF1-3: status LEDs
+ * LASR: PB4 Controls status of LASER
  *
- * TODO: Add ADC Input for 3 inputs
- * 1st Input: Val for servo. 
- * 2nd Input: Val for stepper motor
- * 3rd Input: Val for speed for stepper motor
- *
- * ADC Inputs
- *
- * PE1 - AIN2
- * PE4 - AIN9
- * PE5 - AIN8
- *
- * STEPPER_MOTOR_OUTPUT
- * PC6
- *
- * Laser Switch Pin
- *
- * PB4 : 
+ * PF4 : sw2 - changes motor resolution
+ * PF0 : sw1 - changes motor direction
+ * PF1-3: status LEDs
  *
  * PC0-3 is JTAG, do NOT USER
- *
- ***************************************************
- *
- * PID notes
- *
- * Proportional Controller
- * -Error = Set Point - Process Variable
- * Control Variable = Control Variable + (Kp * Error ) 
- * 
- * Integral Controller - for steady state error, accumulated error
- * Integral = Sum(Error)
- * -Error = Set Point - Process Variable
- * -Integral = Integral + Error
- * Control Variable = (Kp * Error) + (Ki * Integral)
- * // Some applications stop accumulating error when CV is saturated
- * 
- * Derivative Controller - rate of change in an error (slows down system when approaching target)
- * Derivative = Error - Last Error
- * -Last Error = Error
- * -Error = Set Point - Process Variable
- * Derivative = Error - Last Error 
- * Control Variable = (Kp* Error) + (Kd * Derivative)
- *
- * Final
- * Control Variable = (Kp * P_error) + (Ki * I_sum) + (Kd * D_error)
  */
 
 #include "tm4c123gh6pm.h"
 #include "UART.h"
 #include "stdlib.h"
 /***********************************************************************************/
+#define FULL 				 0x00
+#define HALF 				 0x80
+#define QUARTER 		 0x40
+#define EIGHTH			 0xC0
+#define SIXTEENTH		 0x20
+#define THIRTYSECOND 0xA0
+#define LEFT 				 0x80
+#define RIGHT 			 0x7F
+#define SERVO_MIN    9000
+#define SERVO_MAX    15000
+/***********************************************************************************/
 int en = 419;
-volatile float         L_SENSvolts,  R_SENSvolts ; // Sensor volt for left/right ADC
-volatile unsigned long L_ADCvalue,  R_ADCvalue   ; // Sensor for forward left/right IR ADC
-volatile unsigned long IRleft, IRright, POTmeter ; // ADC input variables
-
-// Servos
-const unsigned int LEFT_MOST_VALUE = 8000;   // 5%  Duty
-const unsigned int RIGHT_MOST_VALUE = 40000; // 10% Duty
-const unsigned int RANGE = RIGHT_MOST_VALUE - LEFT_MOST_VALUE;
-const unsigned int MAX_ADC = 4095;
-
-unsigned int getServoPosition(volatile unsigned long *ADC_Servo_Value);
 
 // UART coordinates
 unsigned int xGreen, yGreen, xRed, yRed;
-
-// Servo PID constants, adjust as needed
-double  Servo_PID = 0;
-double  Servo_pwm = 8000;// Min servo value
-double  Servo_error = 0;
-
-// Proportional
-const double Kp = 1.0;
-
-// Integral
-const double Ki = 0.5;
-double Servo_error_sum = 0;
-
-// Derivative
-const double Kd = 0.2;
-double Servo_derivative = 0;
-double Servo_last_error = 0;
 
 // Stepper Motor vars
 unsigned int STEP_COUNT = 0;
@@ -115,20 +56,17 @@ char NoneFlag = 0;
 
 // Servo basic feedback val
 unsigned int servo_basic = 12000;
-
-
-void ServoPID(void);
-void OutUART();
-
-
+double Servo_pwm = 8000;
+/***********************************************************************************/
+void OutUART(void);
 void LaserOn(void);
 void LaserOff(void);
-
+int  strcmp(const char *, const char *);
 /***********************************************************************************/
 void PortA_Init(){ unsigned long delay;
 	SYSCTL_RCGCPWM_R  |= 0x02;					//activate PWM module 1
 	SYSCTL_RCGC2_R 		|= 0x00000001;		//activate Port A
-	delay = SYSCTL_RCGC2_R;
+	delay = SYSCTL_RCGC2_R; delay++;
 	GPIO_PORTA_CR_R	  |= 0x80;					//allow changes to PA7
 	GPIO_PORTA_AMSEL_R&= 0xEF;					//disable analog for PA7
 	GPIO_PORTA_PCTL_R &= 0x0FFFFFFF; 		//set PA7 as PWM output
@@ -152,9 +90,19 @@ void PortA_Init(){ unsigned long delay;
 	
 }
 
+void PortB_Init(){ unsigned long delay;
+	SYSCTL_RCGC2_R    |= 0x00000002;		//activate Port B
+	delay = SYSCTL_RCGC2_R; delay++;
+	GPIO_PORTB_CR_R   |= 0xF0;  		    //allow changes PB7,6,5,4
+	GPIO_PORTB_AMSEL_R&= 0x0F;  			  //disable analog for PB7,6,5,4
+	GPIO_PORTB_PCTL_R &= 0x0000FFFF; 		//set PB7,6,5,4 as GPIO
+	GPIO_PORTB_DIR_R  |= 0xF0;					//set PB7,6,5,4 as output
+	GPIO_PORTB_AFSEL_R&= 0x0F;					//disable alt func PB7,6,5,4
+	GPIO_PORTB_DEN_R  |= 0xF0;					//digital enable PB7,6,5,4
+}
 void PortC_Init(){ unsigned long delay;
 	SYSCTL_RCGC2_R 		 |= 0x00000004; //intialize port C
-	delay = SYSCTL_RCGC2_R;
+	delay = SYSCTL_RCGC2_R; delay++;
 	GPIO_PORTC_LOCK_R   = 0x4C4F434B; //unlock Port C
 	GPIO_PORTC_CR_R    |= 0xC0;  		  //allow changes to PC7, 6
 	GPIO_PORTC_AMSEL_R &= 0x3F;       //disable analog for PC7, 6
@@ -164,19 +112,9 @@ void PortC_Init(){ unsigned long delay;
 	GPIO_PORTC_DEN_R   |= 0xC0;				//digital enable PC7, 6
 }	
  
-void PortB_Init(){ unsigned long delay;
-	SYSCTL_RCGC2_R    |= 0x00000002;		//activate Port B
-	delay = SYSCTL_RCGC2_R;
-	GPIO_PORTB_CR_R   |= 0xF0;  		    //allow changes PB7,6,5,4
-	GPIO_PORTB_AMSEL_R&= 0x0F;  			  //disable analog for PB7,6,5,4
-	GPIO_PORTB_PCTL_R &= 0x0000FFFF; 		//set PB7,6,5,4 as GPIO
-	GPIO_PORTB_DIR_R  |= 0xF0;					//set PB7,6,5,4 as output
-	GPIO_PORTB_AFSEL_R&= 0x0F;					//disable alt func PB7,6,5,4
-	GPIO_PORTB_DEN_R  |= 0xF0;					//digital enable PB7,6,5,4
-}
 void PortF_Init(){ unsigned long delay;//for LED debugging
 	SYSCTL_RCGC2_R 		|= 0x00000020;		//activate Port F
-	delay = SYSCTL_RCGC2_R; 
+	delay = SYSCTL_RCGC2_R; delay++;
 	GPIO_PORTF_LOCK_R = 0x4C4F434B;			//unlock Port F
 	GPIO_PORTF_CR_R	  |= 0x1F;					//allow changes to PF4,3,2,1,0
 	GPIO_PORTF_AMSEL_R&= 0xE0;					//disable analog for PF4,3,2,1,0
@@ -225,7 +163,7 @@ void PortF_Init(){ unsigned long delay;//for LED debugging
 
 void SysTick_Init(){
 	 // 1 / 16,000,000 * val = sec
-	// output: 
+	 // output: 
 	 NVIC_ST_CTRL_R = 0; //disable systick
 	 NVIC_ST_RELOAD_R = 1600; // 0.5 second interval
 	 NVIC_ST_CURRENT_R = 0; //reset current couter value
@@ -240,21 +178,17 @@ void SysTick_Handler(void){
 			//set low and decrease counter
 			GPIO_PORTC_DATA_R &= 0xBF;
 			GPIO_PORTF_DATA_R &= ~0x04;
-
 			STEP_COUNT = STEP_COUNT - 1;
 		}
 		else{// low
 			// set high
 			GPIO_PORTC_DATA_R |= 0x40; 
 			GPIO_PORTF_DATA_R |= 0x04;
-
 		}
-		
 	}
 	// Turn off output if count is not high
 	else{
 		GPIO_PORTC_DATA_R &= 0xBF;
-		//GPIO_PORTF_DATA_R &= 0x00;
 	}
 }
  
@@ -264,58 +198,26 @@ void GPIOPortF_Handler(void){
 		  STEP_COUNT = 10;
 	 }
 	 if(GPIO_PORTF_DATA_R & 0x10){//right button
-			step_en = 0x01;
-		  STEP_COUNT = 20;		 
+			// Do nothing for now
 	 }
-	 
 	 GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
-	 
- }
- 
-
+}
 /***********************************************************************************/
 // Functions to change step direction
-void step_left(void){
-	GPIO_PORTC_DATA_R |= 0x80;
-}
-void step_right(void){
-	GPIO_PORTC_DATA_R &= 0x7F;
-}
+void step_left(void) { GPIO_PORTC_DATA_R |=  LEFT; }
+void step_right(void){ GPIO_PORTC_DATA_R &= RIGHT; }
 // Functions to change step resolution
-/*
-
- * MS1 : PB5 Controls stepping of motor
- * MS2 : PB6 
- * MS3 : PB7
- * 
-*/
-void step_full(void){
-	GPIO_PORTB_DATA_R &= 0x1F;
-	GPIO_PORTB_DATA_R |= 0x00;
-}
-void step_half(void){
-	GPIO_PORTB_DATA_R &= 0x1F;
-	GPIO_PORTB_DATA_R |= 0x20;
-}
-void step_quarter(void){
-	GPIO_PORTB_DATA_R &= 0x1F;
-	GPIO_PORTB_DATA_R |= 0x40;
-}
-void step_eighth(void){
-	GPIO_PORTB_DATA_R &= 0x1F;
-	GPIO_PORTB_DATA_R |= 0xD0;
-}
-void step_sixteenth(void){
-	GPIO_PORTB_DATA_R &= 0x1F;
-	GPIO_PORTB_DATA_R |= 0xE0;
-}
+void step_full(void)        { GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | FULL;				}
+void step_half(void)   			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | HALF;        }
+void step_quarter(void) 		{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | QUARTER;     }
+void step_eighth(void) 			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | EIGHTH;      }
+void step_sixteenth(void)		{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | SIXTEENTH;   }
+void step_thirtysecond(void){ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | THIRTYSECOND;}
 
 //Change 3 bit outputs to stepper motor driver
 void StepOut(){
-	// Send x number of pulses using systick
 	// Have an output enable & an output counter to send x number of pulses
 	int diff = xRed - xGreen;
-	//step_full();
 	int val_to_step = 0;
 	
 	// Step count range values
@@ -331,77 +233,19 @@ void StepOut(){
 		val_to_step = 10;
 	
 	STEP_COUNT = val_to_step;
+
 	// Check xGreen & xRed
-	if( diff < 0 ){ // xRed is left of xGreen
-		step_right();
-		//STEP_COUNT = 100;
-	}
-	else{ // xRed is right of xGreen
-		step_left();
-		//STEP_COUNT = 100;
-	}
-	// 
+	
+	// xRed is left of xGreen
+	if( diff < 0 ){ step_right();}
+	// xRed is right of xGreen
+	else{ 					step_left(); }
+	
 }
-
-// Returns a clock cycle count requirement in order to acheive PWM duty cycles 
-// Converts (0-4095) to 5% - 10% duty cycle (or 8000-40000 clock cycles)
-unsigned int getServoPosition(volatile unsigned long *ADC_Servo_Value){
-    double Add_Value = 2.44;
-    return ( Add_Value * (*ADC_Servo_Value)  + LEFT_MOST_VALUE);
-}
-
-// Set servo pwm value using paramter
-void servo_pos(unsigned long val){
-	//unsigned long normalVal;
-	//normalVal = getServoPosition(&val);
-	PWM1_1_CMPB_R = val;//normalVal;
-}
-
 
 /***********************************************************************************/
 // Manually set servo values
-void UpdateServo(unsigned int pwm){
-	PWM1_1_CMPB_R = pwm;
-}
-// Servo PID loop. Adjust servo pwm output based on a closed feedback loop
-void ServoPID(){
-		// yGreen - yRed = target - current
-		// range [0, 1079]
-		// reduced resolution to 640 x 480
-		
-		// Derivative Last Error
-		Servo_last_error = Servo_error;
-	  
-		// Error
-		Servo_error = yGreen - yRed;
-		
-		// Integral Error Sum
-		Servo_error_sum = Servo_error_sum + Servo_error;
-	
-		// Derivative 
-		Servo_derivative = Servo_error - Servo_last_error;
-
-		// Set servo value
-		Servo_PID = (Kp * Servo_error) + (Ki * Servo_error_sum) + (Kd * Servo_derivative);
-		
-		Servo_pwm = Servo_pwm + Servo_PID;
-		// Servo_pwm value range [9000, 15000], min & maxes
-		if(Servo_pwm < 8000){
-			Servo_pwm = 8000;
-			Servo_PID = 0;
-			Servo_error_sum = 0;
-		}
-		else if(Servo_pwm > 16000){
-			Servo_pwm = 40000;
-			Servo_PID = 0;
-			Servo_derivative = 0;
-		}
-		
-		//Set servo value
-		UpdateServo(Servo_pwm);
-}
-
-
+void UpdateServo(unsigned int pwm){ PWM1_1_CMPB_R = pwm; }
 
 // Basic movement up and down
 void ServoFeedback(){
@@ -429,55 +273,40 @@ void ServoFeedback(){
 	servo_basic += val;
 	
 	// check max and min servo values
-	if(servo_basic < 9000)
-		servo_basic = 9000;
-	if(servo_basic > 15000)
-		servo_basic = 15000;
+	if(servo_basic < 9000) { servo_basic =  9000; }
+	if(servo_basic > 15000){ servo_basic = 15000; }
 	
+	// Update servo position
 	UpdateServo(servo_basic);
 }
 /***********************************************************************************/
-void LaserOn(){
-	GPIO_PORTB_DATA_R |=  0x10;
-	NoneFlag = 1;
-}
-void LaserOff(){
-	GPIO_PORTB_DATA_R &= ~0x10;
-	NoneFlag = 0;
-}
+void LaserOn() { GPIO_PORTB_DATA_R |=  0x10; NoneFlag = 1; }
+void LaserOff(){ GPIO_PORTB_DATA_R &= ~0x10; NoneFlag = 0; }
 /***********************************************************************************/
 // Send carriage return, line feed
-void OutCRLF(void){
-    UART_OutChar(CR);
-    UART_OutChar(LF);
-}
+void OutCRLF(void){ UART_OutChar(CR); UART_OutChar(LF); }
 // UART reading and output
 void GetUART(){
-	
-		// Print line to send coordinates
-		//UART_OutString("Send Coordinates. PID Control Variable: ");
-		//UART_OutUDec(Servo_pwm);
-		//OutCRLF();
-		
 		// Change color to red before receiving 4 characters
 		//GPIO_PORTF_DATA_R  = 0x02;
 		
 		// Get first "strt" string and check if it correct
-		int temp = 9000;
-
+		char temp_check = 0x00; 
+		int  temp = 9000;
 		UART_InString(STRT, 5);
-		//GPIO_PORTF_DATA_R = 0x00;
-	
-		if(strcmp(STRT, "strt") != 0){
+
+		temp_check = strcmp(STRT, "strt");
+		if(temp_check != 0){
 			GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
 			temp = UART_InUDec();
 			servo_basic = temp;
 			UpdateServo(temp);
 			return;
 		}
-				// Read either none or number
-		UART_InString(test, 5);
 		
+		// Read either none or number
+		UART_InString(test, 5);
+		temp_check = strcmp(test, "none");
 		// Did not get a none
 		if(strcmp(test, "none") != 0){
 			LaserOn();
@@ -490,9 +319,8 @@ void GetUART(){
 			yRed   = UART_InUDec();	
 			//GPIO_PORTF_DATA_R |= 0x08;
 		}
-		else{// None
-		 LaserOff();
-		}
+		// None
+		else{ LaserOff(); }
 		
 		// Get stop
 		UART_InString(STOP, 5);
@@ -501,55 +329,24 @@ void GetUART(){
 			//GPIO_PORTF_DATA_R |= 0x04;
 			return;
 		}
-		
-		OutUART();
 		//GPIO_PORTF_DATA_R = 0x0E; //white if data good
-		
+
 		// Change color to sky blue after receiving 4 characters
 		//GPIO_PORTF_DATA_R  = 0x0C;
-
-	
-}
-void OutUART(){
-		OutCRLF();
-		// Print pwm value to terminal, check changes
-		GPIO_PORTF_DATA_R  = 0x08; // Green
-		UART_OutString("Coordinates Received. PID Control Variable: ");
-		UART_OutUDec(Servo_pwm);
-		OutCRLF();
-		// Send Coordinates back
-	
-		UART_OutString("xGreen: ");
-		UART_OutUDec(xGreen);
-		OutCRLF();
-		UART_OutString("yGreen: ");
-		UART_OutUDec(yGreen);
-		OutCRLF();
-		UART_OutString("xRed: ");
-		UART_OutUDec(xRed);
-		OutCRLF();
-		UART_OutString("yRed: ");
-		UART_OutUDec(yRed);
-		OutCRLF();
-	
-		UART_OutString("servo_basic: ");
-		UART_OutUDec(servo_basic);
-		OutCRLF();
-
 }
 
 //debug code
 int main(void){
-
   PortA_Init();
 	PortB_Init();
 	PortC_Init();
 	PortF_Init();
 	SysTick_Init();
 	UART_Init();
+	
 	UpdateServo(servo_basic);
-	step_sixteenth();
-	//step_half();
+	step_thirtysecond();
+
   while(1){
 		// Start, get UART character
 		GetUART();
@@ -557,12 +354,6 @@ int main(void){
 			ServoFeedback();
 			StepOut();
 		}
-
-		// (x, y) green, (x, y) red coordinates
-		// servo PWM [2000 , 18000]
-		//ServoPID();
-		//StepOut();
-		//OutUART();
   }
 }
 

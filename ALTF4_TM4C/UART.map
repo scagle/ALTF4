@@ -31,35 +31,16 @@ Section Cross References
     uarttestmain.o(i.GetUART) refers to uarttestmain.o(i.LaserOn) for LaserOn
     uarttestmain.o(i.GetUART) refers to atoi.o(.text) for atoi
     uarttestmain.o(i.GetUART) refers to uarttestmain.o(i.LaserOff) for LaserOff
-    uarttestmain.o(i.GetUART) refers to uarttestmain.o(i.OutUART) for OutUART
     uarttestmain.o(i.GetUART) refers to uarttestmain.o(.data) for STRT
     uarttestmain.o(i.LaserOff) refers to uarttestmain.o(.data) for NoneFlag
     uarttestmain.o(i.LaserOn) refers to uarttestmain.o(.data) for NoneFlag
     uarttestmain.o(i.OutCRLF) refers to uart.o(i.UART_OutChar) for UART_OutChar
-    uarttestmain.o(i.OutUART) refers to uarttestmain.o(i.OutCRLF) for OutCRLF
-    uarttestmain.o(i.OutUART) refers to uart.o(i.UART_OutString) for UART_OutString
-    uarttestmain.o(i.OutUART) refers to dfixu.o(x$fpl$dfixu) for __aeabi_d2uiz
-    uarttestmain.o(i.OutUART) refers to uart.o(i.UART_OutUDec) for UART_OutUDec
-    uarttestmain.o(i.OutUART) refers to uarttestmain.o(.data) for Servo_pwm
     uarttestmain.o(i.ServoFeedback) refers to uarttestmain.o(i.UpdateServo) for UpdateServo
     uarttestmain.o(i.ServoFeedback) refers to uarttestmain.o(.data) for yRed
-    uarttestmain.o(i.ServoPID) refers to dflt_clz.o(x$fpl$dfltu) for __aeabi_ui2d
-    uarttestmain.o(i.ServoPID) refers to daddsub_clz.o(x$fpl$dadd) for __aeabi_dadd
-    uarttestmain.o(i.ServoPID) refers to daddsub_clz.o(x$fpl$dsub) for __aeabi_dsub
-    uarttestmain.o(i.ServoPID) refers to dmul.o(x$fpl$dmul) for __aeabi_dmul
-    uarttestmain.o(i.ServoPID) refers to dleqf.o(x$fpl$dleqf) for __aeabi_cdcmple
-    uarttestmain.o(i.ServoPID) refers to drleqf.o(x$fpl$drleqf) for __aeabi_cdrcmple
-    uarttestmain.o(i.ServoPID) refers to dfixu.o(x$fpl$dfixu) for __aeabi_d2uiz
-    uarttestmain.o(i.ServoPID) refers to uarttestmain.o(i.UpdateServo) for UpdateServo
-    uarttestmain.o(i.ServoPID) refers to uarttestmain.o(.data) for Servo_error
     uarttestmain.o(i.StepOut) refers to uarttestmain.o(i.step_right) for step_right
     uarttestmain.o(i.StepOut) refers to uarttestmain.o(i.step_left) for step_left
     uarttestmain.o(i.StepOut) refers to uarttestmain.o(.data) for xRed
     uarttestmain.o(i.SysTick_Handler) refers to uarttestmain.o(.data) for step_en
-    uarttestmain.o(i.getServoPosition) refers to dflt_clz.o(x$fpl$dfltu) for __aeabi_ui2d
-    uarttestmain.o(i.getServoPosition) refers to dmul.o(x$fpl$dmul) for __aeabi_dmul
-    uarttestmain.o(i.getServoPosition) refers to daddsub_clz.o(x$fpl$dadd) for __aeabi_dadd
-    uarttestmain.o(i.getServoPosition) refers to dfixu.o(x$fpl$dfixu) for __aeabi_d2uiz
     uarttestmain.o(i.main) refers to uarttestmain.o(i.PortA_Init) for PortA_Init
     uarttestmain.o(i.main) refers to uarttestmain.o(i.PortB_Init) for PortB_Init
     uarttestmain.o(i.main) refers to uarttestmain.o(i.PortC_Init) for PortC_Init
@@ -67,7 +48,7 @@ Section Cross References
     uarttestmain.o(i.main) refers to uarttestmain.o(i.SysTick_Init) for SysTick_Init
     uarttestmain.o(i.main) refers to uart.o(i.UART_Init) for UART_Init
     uarttestmain.o(i.main) refers to uarttestmain.o(i.UpdateServo) for UpdateServo
-    uarttestmain.o(i.main) refers to uarttestmain.o(i.step_sixteenth) for step_sixteenth
+    uarttestmain.o(i.main) refers to uarttestmain.o(i.step_thirtysecond) for step_thirtysecond
     uarttestmain.o(i.main) refers to uarttestmain.o(i.GetUART) for GetUART
     uarttestmain.o(i.main) refers to uarttestmain.o(i.ServoFeedback) for ServoFeedback
     uarttestmain.o(i.main) refers to uarttestmain.o(i.StepOut) for StepOut
@@ -75,31 +56,6 @@ Section Cross References
     atoi.o(.text) refers to rt_errno_addr_intlibspace.o(.text) for __aeabi_errno_addr
     atoi.o(.text) refers to strtol.o(.text) for strtol
     __main.o(!!!main) refers to rtentry.o(.ARM.Collect$$rtentry$$00000000) for __rt_entry
-    daddsub_clz.o(x$fpl$dadd) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    daddsub_clz.o(x$fpl$dadd) refers to daddsub_clz.o(x$fpl$dsub) for _dsub1
-    daddsub_clz.o(x$fpl$dadd) refers to dretinf.o(x$fpl$dretinf) for __fpl_dretinf
-    daddsub_clz.o(x$fpl$dadd) refers to dnaninf.o(x$fpl$dnaninf) for __fpl_dnaninf
-    daddsub_clz.o(x$fpl$drsb) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    daddsub_clz.o(x$fpl$drsb) refers to daddsub_clz.o(x$fpl$dadd) for _dadd1
-    daddsub_clz.o(x$fpl$drsb) refers to daddsub_clz.o(x$fpl$dsub) for _dsub1
-    daddsub_clz.o(x$fpl$dsub) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    daddsub_clz.o(x$fpl$dsub) refers to daddsub_clz.o(x$fpl$dadd) for _dadd1
-    daddsub_clz.o(x$fpl$dsub) refers to dnaninf.o(x$fpl$dnaninf) for __fpl_dnaninf
-    dfixu.o(x$fpl$dfixu) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dfixu.o(x$fpl$dfixu) refers to dnaninf.o(x$fpl$dnaninf) for __fpl_dnaninf
-    dfixu.o(x$fpl$dfixur) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dfixu.o(x$fpl$dfixur) refers to dnaninf.o(x$fpl$dnaninf) for __fpl_dnaninf
-    dflt_clz.o(x$fpl$dfltu) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dflt_clz.o(x$fpl$dflt) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dflt_clz.o(x$fpl$dfltn) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dleqf.o(x$fpl$dleqf) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dleqf.o(x$fpl$dleqf) refers to dnaninf.o(x$fpl$dnaninf) for __fpl_dnaninf
-    dleqf.o(x$fpl$dleqf) refers to dcmpi.o(x$fpl$dcmpinf) for __fpl_dcmp_Inf
-    dmul.o(x$fpl$dmul) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dmul.o(x$fpl$dmul) refers to dretinf.o(x$fpl$dretinf) for __fpl_dretinf
-    dmul.o(x$fpl$dmul) refers to dnaninf.o(x$fpl$dnaninf) for __fpl_dnaninf
-    drleqf.o(x$fpl$drleqf) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    drleqf.o(x$fpl$drleqf) refers to dleqf.o(x$fpl$dleqf) for __fpl_dcmple_InfNaN
     rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to rtentry2.o(.ARM.Collect$$rtentry$$0000000A) for __rt_entry_li
     rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to rtentry2.o(.ARM.Collect$$rtentry$$0000000D) for __rt_entry_main
     rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to rtentry2.o(.ARM.Collect$$rtentry$$0000000C) for __rt_entry_postli_1
@@ -111,9 +67,6 @@ Section Cross References
     strtol.o(.text) refers to rt_ctype_table.o(.text) for __rt_ctype_table
     strtol.o(.text) refers to _strtoul.o(.text) for _strtoul
     strtol.o(.text) refers to rt_errno_addr_intlibspace.o(.text) for __aeabi_errno_addr
-    dcmpi.o(x$fpl$dcmpinf) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dnaninf.o(x$fpl$dnaninf) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
-    dretinf.o(x$fpl$dretinf) refers (Special) to usenofp.o(x$fpl$usenofp) for __I$use$fp
     libspace.o(.text) refers to libspace.o(.bss) for __libspace_start
     rtentry2.o(.ARM.Collect$$rtentry$$00000008) refers to boardinit2.o(.text) for _platform_post_stackheap_init
     rtentry2.o(.ARM.Collect$$rtentry$$0000000A) refers to libinit.o(.ARM.Collect$$libinit$$00000000) for __rt_lib_init
@@ -223,17 +176,17 @@ Removing Unused input sections from the image.
 
     Removing pll.o(i.PLL_Init), (124 bytes).
     Removing uart.o(i.UART_InUHex), (104 bytes).
+    Removing uart.o(i.UART_OutString), (22 bytes).
+    Removing uart.o(i.UART_OutUDec), (42 bytes).
     Removing uart.o(i.UART_OutUHex), (52 bytes).
-    Removing uarttestmain.o(i.ServoPID), (304 bytes).
-    Removing uarttestmain.o(i.getServoPosition), (64 bytes).
-    Removing uarttestmain.o(i.servo_pos), (12 bytes).
-    Removing uarttestmain.o(i.step_eighth), (40 bytes).
-    Removing uarttestmain.o(i.step_full), (32 bytes).
-    Removing uarttestmain.o(i.step_half), (40 bytes).
-    Removing uarttestmain.o(i.step_quarter), (40 bytes).
-    Removing uarttestmain.o(.constdata), (40 bytes).
+    Removing uarttestmain.o(i.OutCRLF), (16 bytes).
+    Removing uarttestmain.o(i.step_eighth), (28 bytes).
+    Removing uarttestmain.o(i.step_full), (24 bytes).
+    Removing uarttestmain.o(i.step_half), (28 bytes).
+    Removing uarttestmain.o(i.step_quarter), (28 bytes).
+    Removing uarttestmain.o(i.step_sixteenth), (28 bytes).
 
-11 unused section(s) (total 852 bytes) removed from the image.
+11 unused section(s) (total 496 bytes) removed from the image.
 
 ==============================================================================
 
@@ -244,22 +197,22 @@ Image Symbol Table
     Symbol Name                              Value     Ov Type        Size  Object(Section)
 
     RESET                                    0x00000000   Section      644  startup.o(RESET)
-    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardshut.o ABSOLUTE
-    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit3.o ABSOLUTE
     ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit2.o ABSOLUTE
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit3.o ABSOLUTE
     ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit1.o ABSOLUTE
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardshut.o ABSOLUTE
     ../clib/angel/handlers.s                 0x00000000   Number         0  __scatter_zi.o ABSOLUTE
     ../clib/angel/handlers.s                 0x00000000   Number         0  __scatter_copy.o ABSOLUTE
-    ../clib/angel/kernel.s                   0x00000000   Number         0  rtentry2.o ABSOLUTE
-    ../clib/angel/kernel.s                   0x00000000   Number         0  rtentry4.o ABSOLUTE
-    ../clib/angel/kernel.s                   0x00000000   Number         0  rtexit.o ABSOLUTE
     ../clib/angel/kernel.s                   0x00000000   Number         0  rtentry.o ABSOLUTE
     ../clib/angel/kernel.s                   0x00000000   Number         0  rtexit2.o ABSOLUTE
-    ../clib/angel/rt.s                       0x00000000   Number         0  rt_ctype_table.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  rtexit.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  rtentry4.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  rtentry2.o ABSOLUTE
     ../clib/angel/rt.s                       0x00000000   Number         0  rt_errno_addr.o ABSOLUTE
     ../clib/angel/rt.s                       0x00000000   Number         0  rt_errno_addr_intlibspace.o ABSOLUTE
-    ../clib/angel/rt.s                       0x00000000   Number         0  rt_locale.o ABSOLUTE
     ../clib/angel/rt.s                       0x00000000   Number         0  rt_locale_intlibspace.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  rt_locale.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  rt_ctype_table.o ABSOLUTE
     ../clib/angel/rt.s                       0x00000000   Number         0  rt_raise.o ABSOLUTE
     ../clib/angel/scatter.s                  0x00000000   Number         0  __scatter.o ABSOLUTE
     ../clib/angel/startup.s                  0x00000000   Number         0  __main.o ABSOLUTE
@@ -267,9 +220,9 @@ Image Symbol Table
     ../clib/angel/sys.s                      0x00000000   Number         0  sys_stackheap_outer.o ABSOLUTE
     ../clib/angel/sys.s                      0x00000000   Number         0  use_no_semi.o ABSOLUTE
     ../clib/angel/sys.s                      0x00000000   Number         0  indicate_semi.o ABSOLUTE
-    ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_command.o ABSOLUTE
-    ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_exit.o ABSOLUTE
     ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_wrch.o ABSOLUTE
+    ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_exit.o ABSOLUTE
+    ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_command.o ABSOLUTE
     ../clib/armsys.c                         0x00000000   Number         0  _get_argv_nomalloc.o ABSOLUTE
     ../clib/armsys.c                         0x00000000   Number         0  no_argv.o ABSOLUTE
     ../clib/armsys.c                         0x00000000   Number         0  argv_veneer.o ABSOLUTE
@@ -277,42 +230,32 @@ Image Symbol Table
     ../clib/heapalloc.c                      0x00000000   Number         0  hrguard.o ABSOLUTE
     ../clib/heapaux.c                        0x00000000   Number         0  heapauxi.o ABSOLUTE
     ../clib/libinit.s                        0x00000000   Number         0  libshutdown.o ABSOLUTE
+    ../clib/libinit.s                        0x00000000   Number         0  libinit2.o ABSOLUTE
     ../clib/libinit.s                        0x00000000   Number         0  libinit.o ABSOLUTE
     ../clib/libinit.s                        0x00000000   Number         0  libshutdown2.o ABSOLUTE
-    ../clib/libinit.s                        0x00000000   Number         0  libinit2.o ABSOLUTE
     ../clib/locale.s                         0x00000000   Number         0  lc_ctype_c.o ABSOLUTE
     ../clib/memcpset.s                       0x00000000   Number         0  strcmpv7m.o ABSOLUTE
     ../clib/scanf.c                          0x00000000   Number         0  strtol.o ABSOLUTE
-    ../clib/scanf.c                          0x00000000   Number         0  _chval.o ABSOLUTE
     ../clib/scanf.c                          0x00000000   Number         0  _strtoul.o ABSOLUTE
+    ../clib/scanf.c                          0x00000000   Number         0  _chval.o ABSOLUTE
     ../clib/scanf.c                          0x00000000   Number         0  atoi.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_formal.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_outer.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_abrt_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_rtred_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_stak_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_pvfn_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_cppl_inner.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_exit.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_segv_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_other.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_exit.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_outer.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_formal.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  __raise.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_general.o ABSOLUTE
     ../clib/signal.s                         0x00000000   Number         0  defsig.o ABSOLUTE
     ../clib/stdlib.c                         0x00000000   Number         0  exit.o ABSOLUTE
-    ../fplib/daddsub.s                       0x00000000   Number         0  daddsub_clz.o ABSOLUTE
-    ../fplib/dcmpi.s                         0x00000000   Number         0  dcmpi.o ABSOLUTE
-    ../fplib/dfixu.s                         0x00000000   Number         0  dfixu.o ABSOLUTE
-    ../fplib/dflt.s                          0x00000000   Number         0  dflt_clz.o ABSOLUTE
-    ../fplib/dleqf.s                         0x00000000   Number         0  dleqf.o ABSOLUTE
-    ../fplib/dmul.s                          0x00000000   Number         0  dmul.o ABSOLUTE
-    ../fplib/dnaninf.s                       0x00000000   Number         0  dnaninf.o ABSOLUTE
-    ../fplib/dretinf.s                       0x00000000   Number         0  dretinf.o ABSOLUTE
-    ../fplib/drleqf.s                        0x00000000   Number         0  drleqf.o ABSOLUTE
     ../fplib/fpinit.s                        0x00000000   Number         0  fpinit.o ABSOLUTE
-    ../fplib/usenofp.s                       0x00000000   Number         0  usenofp.o ABSOLUTE
     PLL.c                                    0x00000000   Number         0  pll.o ABSOLUTE
     UART.c                                   0x00000000   Number         0  uart.o ABSOLUTE
     UARTTestMain.c                           0x00000000   Number         0  uarttestmain.o ABSOLUTE
@@ -380,45 +323,38 @@ Image Symbol Table
     .text                                    0x000005b8   Section        2  use_no_semi.o(.text)
     .text                                    0x000005ba   Section        0  indicate_semi.o(.text)
     i.GPIOPortF_Handler                      0x000005bc   Section        0  uarttestmain.o(i.GPIOPortF_Handler)
-    i.GetUART                                0x00000600   Section        0  uarttestmain.o(i.GetUART)
-    i.LaserOff                               0x000006d4   Section        0  uarttestmain.o(i.LaserOff)
-    i.LaserOn                                0x000006f8   Section        0  uarttestmain.o(i.LaserOn)
-    i.OutCRLF                                0x0000071c   Section        0  uarttestmain.o(i.OutCRLF)
-    i.OutUART                                0x0000072c   Section        0  uarttestmain.o(i.OutUART)
-    i.PortA_Init                             0x00000830   Section        0  uarttestmain.o(i.PortA_Init)
-    i.PortB_Init                             0x00000950   Section        0  uarttestmain.o(i.PortB_Init)
-    i.PortC_Init                             0x000009cc   Section        0  uarttestmain.o(i.PortC_Init)
-    i.PortF_Init                             0x00000a58   Section        0  uarttestmain.o(i.PortF_Init)
-    i.ServoFeedback                          0x00000c04   Section        0  uarttestmain.o(i.ServoFeedback)
-    i.StepOut                                0x00000ca8   Section        0  uarttestmain.o(i.StepOut)
-    i.SysTick_Handler                        0x00000d24   Section        0  uarttestmain.o(i.SysTick_Handler)
-    i.SysTick_Init                           0x00000dac   Section        0  uarttestmain.o(i.SysTick_Init)
-    i.UART_InChar                            0x00000dcc   Section        0  uart.o(i.UART_InChar)
-    i.UART_InString                          0x00000de4   Section        0  uart.o(i.UART_InString)
-    i.UART_InUDec                            0x00000e26   Section        0  uart.o(i.UART_InUDec)
-    i.UART_Init                              0x00000e74   Section        0  uart.o(i.UART_Init)
-    i.UART_OutChar                           0x00000f0c   Section        0  uart.o(i.UART_OutChar)
-    i.UART_OutString                         0x00000f24   Section        0  uart.o(i.UART_OutString)
-    i.UART_OutUDec                           0x00000f3a   Section        0  uart.o(i.UART_OutUDec)
-    i.UpdateServo                            0x00000f64   Section        0  uarttestmain.o(i.UpdateServo)
-    i.main                                   0x00000f70   Section        0  uarttestmain.o(i.main)
-    i.step_left                              0x00000fb4   Section        0  uarttestmain.o(i.step_left)
-    i.step_right                             0x00000fcc   Section        0  uarttestmain.o(i.step_right)
-    i.step_sixteenth                         0x00000fe4   Section        0  uarttestmain.o(i.step_sixteenth)
-    locale$$code                             0x0000100c   Section       44  lc_ctype_c.o(locale$$code)
-    x$fpl$dfixu                              0x00001038   Section       90  dfixu.o(x$fpl$dfixu)
-    x$fpl$dnaninf                            0x00001092   Section      156  dnaninf.o(x$fpl$dnaninf)
-    x$fpl$usenofp                            0x0000112e   Section        0  usenofp.o(x$fpl$usenofp)
-    locale$$data                             0x00001150   Section      272  lc_ctype_c.o(locale$$data)
-    __lcctype_c_name                         0x00001154   Data           2  lc_ctype_c.o(locale$$data)
-    __lcctype_c_start                        0x0000115c   Data           0  lc_ctype_c.o(locale$$data)
-    __lcctype_c_end                          0x00001260   Data           0  lc_ctype_c.o(locale$$data)
-    .data                                    0x20000000   Section      127  uarttestmain.o(.data)
-    .bss                                     0x20000080   Section       96  libspace.o(.bss)
-    HEAP                                     0x200000e0   Section        0  startup.o(HEAP)
-    STACK                                    0x200000e0   Section     1024  startup.o(STACK)
-    HeapMem                                  0x200000e0   Data           0  startup.o(HEAP)
-    StackMem                                 0x200000e0   Data           0  startup.o(STACK)
+    i.GetUART                                0x000005f0   Section        0  uarttestmain.o(i.GetUART)
+    i.LaserOff                               0x000006cc   Section        0  uarttestmain.o(i.LaserOff)
+    i.LaserOn                                0x000006f0   Section        0  uarttestmain.o(i.LaserOn)
+    i.PortA_Init                             0x00000714   Section        0  uarttestmain.o(i.PortA_Init)
+    i.PortB_Init                             0x00000838   Section        0  uarttestmain.o(i.PortB_Init)
+    i.PortC_Init                             0x000008b8   Section        0  uarttestmain.o(i.PortC_Init)
+    i.PortF_Init                             0x00000948   Section        0  uarttestmain.o(i.PortF_Init)
+    i.ServoFeedback                          0x00000af8   Section        0  uarttestmain.o(i.ServoFeedback)
+    i.StepOut                                0x00000b9c   Section        0  uarttestmain.o(i.StepOut)
+    i.SysTick_Handler                        0x00000c18   Section        0  uarttestmain.o(i.SysTick_Handler)
+    i.SysTick_Init                           0x00000ca0   Section        0  uarttestmain.o(i.SysTick_Init)
+    i.UART_InChar                            0x00000cc0   Section        0  uart.o(i.UART_InChar)
+    i.UART_InString                          0x00000cd8   Section        0  uart.o(i.UART_InString)
+    i.UART_InUDec                            0x00000d1a   Section        0  uart.o(i.UART_InUDec)
+    i.UART_Init                              0x00000d68   Section        0  uart.o(i.UART_Init)
+    i.UART_OutChar                           0x00000e00   Section        0  uart.o(i.UART_OutChar)
+    i.UpdateServo                            0x00000e18   Section        0  uarttestmain.o(i.UpdateServo)
+    i.main                                   0x00000e24   Section        0  uarttestmain.o(i.main)
+    i.step_left                              0x00000e68   Section        0  uarttestmain.o(i.step_left)
+    i.step_right                             0x00000e80   Section        0  uarttestmain.o(i.step_right)
+    i.step_thirtysecond                      0x00000e98   Section        0  uarttestmain.o(i.step_thirtysecond)
+    locale$$code                             0x00000eb4   Section       44  lc_ctype_c.o(locale$$code)
+    locale$$data                             0x00000f00   Section      272  lc_ctype_c.o(locale$$data)
+    __lcctype_c_name                         0x00000f04   Data           2  lc_ctype_c.o(locale$$data)
+    __lcctype_c_start                        0x00000f0c   Data           0  lc_ctype_c.o(locale$$data)
+    __lcctype_c_end                          0x00001010   Data           0  lc_ctype_c.o(locale$$data)
+    .data                                    0x20000000   Section       55  uarttestmain.o(.data)
+    .bss                                     0x20000038   Section       96  libspace.o(.bss)
+    HEAP                                     0x20000098   Section        0  startup.o(HEAP)
+    STACK                                    0x20000098   Section     1024  startup.o(STACK)
+    HeapMem                                  0x20000098   Data           0  startup.o(HEAP)
+    StackMem                                 0x20000098   Data           0  startup.o(STACK)
 
     Global Symbols
 
@@ -650,67 +586,47 @@ Image Symbol Table
     __I$use$semihosting                      0x000005b9   Thumb Code     0  use_no_semi.o(.text)
     __use_no_semihosting_swi                 0x000005b9   Thumb Code     2  use_no_semi.o(.text)
     __semihosting_library_function           0x000005bb   Thumb Code     0  indicate_semi.o(.text)
-    GPIOPortF_Handler                        0x000005bd   Thumb Code    54  uarttestmain.o(i.GPIOPortF_Handler)
-    GetUART                                  0x00000601   Thumb Code   146  uarttestmain.o(i.GetUART)
-    LaserOff                                 0x000006d5   Thumb Code    24  uarttestmain.o(i.LaserOff)
-    LaserOn                                  0x000006f9   Thumb Code    24  uarttestmain.o(i.LaserOn)
-    OutCRLF                                  0x0000071d   Thumb Code    16  uarttestmain.o(i.OutCRLF)
-    OutUART                                  0x0000072d   Thumb Code   128  uarttestmain.o(i.OutUART)
-    PortA_Init                               0x00000831   Thumb Code   238  uarttestmain.o(i.PortA_Init)
-    PortB_Init                               0x00000951   Thumb Code    98  uarttestmain.o(i.PortB_Init)
-    PortC_Init                               0x000009cd   Thumb Code   110  uarttestmain.o(i.PortC_Init)
-    PortF_Init                               0x00000a59   Thumb Code   354  uarttestmain.o(i.PortF_Init)
-    ServoFeedback                            0x00000c05   Thumb Code   150  uarttestmain.o(i.ServoFeedback)
-    StepOut                                  0x00000ca9   Thumb Code   112  uarttestmain.o(i.StepOut)
-    SysTick_Handler                          0x00000d25   Thumb Code   114  uarttestmain.o(i.SysTick_Handler)
-    SysTick_Init                             0x00000dad   Thumb Code    30  uarttestmain.o(i.SysTick_Init)
-    UART_InChar                              0x00000dcd   Thumb Code    20  uart.o(i.UART_InChar)
-    UART_InString                            0x00000de5   Thumb Code    66  uart.o(i.UART_InString)
-    UART_InUDec                              0x00000e27   Thumb Code    76  uart.o(i.UART_InUDec)
-    UART_Init                                0x00000e75   Thumb Code   126  uart.o(i.UART_Init)
-    UART_OutChar                             0x00000f0d   Thumb Code    18  uart.o(i.UART_OutChar)
-    UART_OutString                           0x00000f25   Thumb Code    22  uart.o(i.UART_OutString)
-    UART_OutUDec                             0x00000f3b   Thumb Code    42  uart.o(i.UART_OutUDec)
-    UpdateServo                              0x00000f65   Thumb Code     6  uarttestmain.o(i.UpdateServo)
-    main                                     0x00000f71   Thumb Code    58  uarttestmain.o(i.main)
-    step_left                                0x00000fb5   Thumb Code    16  uarttestmain.o(i.step_left)
-    step_right                               0x00000fcd   Thumb Code    16  uarttestmain.o(i.step_right)
-    step_sixteenth                           0x00000fe5   Thumb Code    30  uarttestmain.o(i.step_sixteenth)
-    _get_lc_ctype                            0x0000100d   Thumb Code    44  lc_ctype_c.o(locale$$code)
-    __aeabi_d2uiz                            0x00001039   Thumb Code     0  dfixu.o(x$fpl$dfixu)
-    _dfixu                                   0x00001039   Thumb Code    90  dfixu.o(x$fpl$dfixu)
-    __fpl_dnaninf                            0x00001093   Thumb Code   156  dnaninf.o(x$fpl$dnaninf)
-    __I$use$fp                               0x0000112e   Number         0  usenofp.o(x$fpl$usenofp)
-    Region$$Table$$Base                      0x00001130   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x00001150   Number         0  anon$$obj.o(Region$$Table)
-    __ctype                                  0x0000115d   Data           0  lc_ctype_c.o(locale$$data)
+    GPIOPortF_Handler                        0x000005bd   Thumb Code    36  uarttestmain.o(i.GPIOPortF_Handler)
+    GetUART                                  0x000005f1   Thumb Code   156  uarttestmain.o(i.GetUART)
+    LaserOff                                 0x000006cd   Thumb Code    24  uarttestmain.o(i.LaserOff)
+    LaserOn                                  0x000006f1   Thumb Code    24  uarttestmain.o(i.LaserOn)
+    PortA_Init                               0x00000715   Thumb Code   242  uarttestmain.o(i.PortA_Init)
+    PortB_Init                               0x00000839   Thumb Code   102  uarttestmain.o(i.PortB_Init)
+    PortC_Init                               0x000008b9   Thumb Code   114  uarttestmain.o(i.PortC_Init)
+    PortF_Init                               0x00000949   Thumb Code   358  uarttestmain.o(i.PortF_Init)
+    ServoFeedback                            0x00000af9   Thumb Code   150  uarttestmain.o(i.ServoFeedback)
+    StepOut                                  0x00000b9d   Thumb Code   112  uarttestmain.o(i.StepOut)
+    SysTick_Handler                          0x00000c19   Thumb Code   114  uarttestmain.o(i.SysTick_Handler)
+    SysTick_Init                             0x00000ca1   Thumb Code    30  uarttestmain.o(i.SysTick_Init)
+    UART_InChar                              0x00000cc1   Thumb Code    20  uart.o(i.UART_InChar)
+    UART_InString                            0x00000cd9   Thumb Code    66  uart.o(i.UART_InString)
+    UART_InUDec                              0x00000d1b   Thumb Code    76  uart.o(i.UART_InUDec)
+    UART_Init                                0x00000d69   Thumb Code   126  uart.o(i.UART_Init)
+    UART_OutChar                             0x00000e01   Thumb Code    18  uart.o(i.UART_OutChar)
+    UpdateServo                              0x00000e19   Thumb Code     6  uarttestmain.o(i.UpdateServo)
+    main                                     0x00000e25   Thumb Code    58  uarttestmain.o(i.main)
+    step_left                                0x00000e69   Thumb Code    16  uarttestmain.o(i.step_left)
+    step_right                               0x00000e81   Thumb Code    16  uarttestmain.o(i.step_right)
+    step_thirtysecond                        0x00000e99   Thumb Code    20  uarttestmain.o(i.step_thirtysecond)
+    _get_lc_ctype                            0x00000eb5   Thumb Code    44  lc_ctype_c.o(locale$$code)
+    Region$$Table$$Base                      0x00000ee0   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x00000f00   Number         0  anon$$obj.o(Region$$Table)
+    __ctype                                  0x00000f0d   Data           0  lc_ctype_c.o(locale$$data)
     en                                       0x20000000   Data           4  uarttestmain.o(.data)
-    Servo_PID                                0x20000008   Data           8  uarttestmain.o(.data)
+    STEP_COUNT                               0x20000004   Data           4  uarttestmain.o(.data)
+    step_en                                  0x20000008   Data           1  uarttestmain.o(.data)
+    NoneFlag                                 0x20000009   Data           1  uarttestmain.o(.data)
+    servo_basic                              0x2000000c   Data           4  uarttestmain.o(.data)
     Servo_pwm                                0x20000010   Data           8  uarttestmain.o(.data)
-    Servo_error                              0x20000018   Data           8  uarttestmain.o(.data)
-    Servo_error_sum                          0x20000020   Data           8  uarttestmain.o(.data)
-    Servo_derivative                         0x20000028   Data           8  uarttestmain.o(.data)
-    Servo_last_error                         0x20000030   Data           8  uarttestmain.o(.data)
-    STEP_COUNT                               0x20000038   Data           4  uarttestmain.o(.data)
-    step_en                                  0x2000003c   Data           1  uarttestmain.o(.data)
-    NoneFlag                                 0x2000003d   Data           1  uarttestmain.o(.data)
-    servo_basic                              0x20000040   Data           4  uarttestmain.o(.data)
-    L_SENSvolts                              0x20000044   Data           4  uarttestmain.o(.data)
-    R_SENSvolts                              0x20000048   Data           4  uarttestmain.o(.data)
-    L_ADCvalue                               0x2000004c   Data           4  uarttestmain.o(.data)
-    R_ADCvalue                               0x20000050   Data           4  uarttestmain.o(.data)
-    IRleft                                   0x20000054   Data           4  uarttestmain.o(.data)
-    IRright                                  0x20000058   Data           4  uarttestmain.o(.data)
-    POTmeter                                 0x2000005c   Data           4  uarttestmain.o(.data)
-    xGreen                                   0x20000060   Data           4  uarttestmain.o(.data)
-    yGreen                                   0x20000064   Data           4  uarttestmain.o(.data)
-    xRed                                     0x20000068   Data           4  uarttestmain.o(.data)
-    yRed                                     0x2000006c   Data           4  uarttestmain.o(.data)
-    STRT                                     0x20000070   Data           5  uarttestmain.o(.data)
-    STOP                                     0x20000075   Data           5  uarttestmain.o(.data)
-    test                                     0x2000007a   Data           5  uarttestmain.o(.data)
-    __libspace_start                         0x20000080   Data          96  libspace.o(.bss)
-    __temporary_stack_top$libspace           0x200000e0   Data           0  libspace.o(.bss)
+    xGreen                                   0x20000018   Data           4  uarttestmain.o(.data)
+    yGreen                                   0x2000001c   Data           4  uarttestmain.o(.data)
+    xRed                                     0x20000020   Data           4  uarttestmain.o(.data)
+    yRed                                     0x20000024   Data           4  uarttestmain.o(.data)
+    STRT                                     0x20000028   Data           5  uarttestmain.o(.data)
+    STOP                                     0x2000002d   Data           5  uarttestmain.o(.data)
+    test                                     0x20000032   Data           5  uarttestmain.o(.data)
+    __libspace_start                         0x20000038   Data          96  libspace.o(.bss)
+    __temporary_stack_top$libspace           0x20000098   Data           0  libspace.o(.bss)
 
 
 
@@ -720,129 +636,121 @@ Memory Map of the image
 
   Image Entry point : 0x0000026d
 
-  Load Region LR_1 (Base: 0x00000000, Size: 0x000012e0, Max: 0xffffffff, ABSOLUTE)
+  Load Region LR_1 (Base: 0x00000000, Size: 0x00001048, Max: 0xffffffff, ABSOLUTE)
 
-    Execution Region ER_RO (Base: 0x00000000, Size: 0x00001260, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_RO (Base: 0x00000000, Size: 0x00001010, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
     0x00000000   0x00000284   Code   RO            3  * RESET               startup.o
-    0x00000284   0x00000008   Code   RO          271  * !!!main             c_w.l(__main.o)
-    0x0000028c   0x00000034   Code   RO          475    !!!scatter          c_w.l(__scatter.o)
-    0x000002c0   0x0000001a   Code   RO          477    !!handler_copy      c_w.l(__scatter_copy.o)
+    0x00000284   0x00000008   Code   RO          252  * !!!main             c_w.l(__main.o)
+    0x0000028c   0x00000034   Code   RO          427    !!!scatter          c_w.l(__scatter.o)
+    0x000002c0   0x0000001a   Code   RO          429    !!handler_copy      c_w.l(__scatter_copy.o)
     0x000002da   0x00000002   PAD
-    0x000002dc   0x0000001c   Code   RO          479    !!handler_zi        c_w.l(__scatter_zi.o)
-    0x000002f8   0x00000002   Code   RO          351    .ARM.Collect$$libinit$$00000000  c_w.l(libinit.o)
-    0x000002fa   0x00000000   Code   RO          355    .ARM.Collect$$libinit$$00000002  c_w.l(libinit2.o)
-    0x000002fa   0x00000000   Code   RO          358    .ARM.Collect$$libinit$$00000008  c_w.l(libinit2.o)
-    0x000002fa   0x00000000   Code   RO          360    .ARM.Collect$$libinit$$0000000A  c_w.l(libinit2.o)
-    0x000002fa   0x00000000   Code   RO          362    .ARM.Collect$$libinit$$0000000C  c_w.l(libinit2.o)
-    0x000002fa   0x00000006   Code   RO          363    .ARM.Collect$$libinit$$0000000D  c_w.l(libinit2.o)
-    0x00000300   0x00000000   Code   RO          365    .ARM.Collect$$libinit$$0000000F  c_w.l(libinit2.o)
-    0x00000300   0x0000000c   Code   RO          366    .ARM.Collect$$libinit$$00000010  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          367    .ARM.Collect$$libinit$$00000011  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          369    .ARM.Collect$$libinit$$00000013  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          371    .ARM.Collect$$libinit$$00000015  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          373    .ARM.Collect$$libinit$$00000017  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          375    .ARM.Collect$$libinit$$00000019  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          377    .ARM.Collect$$libinit$$0000001B  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          379    .ARM.Collect$$libinit$$0000001D  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          381    .ARM.Collect$$libinit$$0000001F  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          383    .ARM.Collect$$libinit$$00000021  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          385    .ARM.Collect$$libinit$$00000023  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          389    .ARM.Collect$$libinit$$0000002A  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          391    .ARM.Collect$$libinit$$0000002C  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          393    .ARM.Collect$$libinit$$0000002E  c_w.l(libinit2.o)
-    0x0000030c   0x00000000   Code   RO          395    .ARM.Collect$$libinit$$00000030  c_w.l(libinit2.o)
-    0x0000030c   0x00000002   Code   RO          396    .ARM.Collect$$libinit$$00000031  c_w.l(libinit2.o)
-    0x0000030e   0x00000002   Code   RO          416    .ARM.Collect$$libshutdown$$00000000  c_w.l(libshutdown.o)
-    0x00000310   0x00000000   Code   RO          430    .ARM.Collect$$libshutdown$$00000003  c_w.l(libshutdown2.o)
-    0x00000310   0x00000000   Code   RO          433    .ARM.Collect$$libshutdown$$00000006  c_w.l(libshutdown2.o)
-    0x00000310   0x00000000   Code   RO          436    .ARM.Collect$$libshutdown$$00000009  c_w.l(libshutdown2.o)
-    0x00000310   0x00000000   Code   RO          438    .ARM.Collect$$libshutdown$$0000000B  c_w.l(libshutdown2.o)
-    0x00000310   0x00000000   Code   RO          441    .ARM.Collect$$libshutdown$$0000000E  c_w.l(libshutdown2.o)
-    0x00000310   0x00000002   Code   RO          442    .ARM.Collect$$libshutdown$$0000000F  c_w.l(libshutdown2.o)
-    0x00000312   0x00000000   Code   RO          295    .ARM.Collect$$rtentry$$00000000  c_w.l(rtentry.o)
-    0x00000312   0x00000000   Code   RO          314    .ARM.Collect$$rtentry$$00000002  c_w.l(rtentry2.o)
-    0x00000312   0x00000006   Code   RO          326    .ARM.Collect$$rtentry$$00000004  c_w.l(rtentry4.o)
-    0x00000318   0x00000000   Code   RO          316    .ARM.Collect$$rtentry$$00000009  c_w.l(rtentry2.o)
-    0x00000318   0x00000004   Code   RO          317    .ARM.Collect$$rtentry$$0000000A  c_w.l(rtentry2.o)
-    0x0000031c   0x00000000   Code   RO          319    .ARM.Collect$$rtentry$$0000000C  c_w.l(rtentry2.o)
-    0x0000031c   0x00000008   Code   RO          320    .ARM.Collect$$rtentry$$0000000D  c_w.l(rtentry2.o)
-    0x00000324   0x00000002   Code   RO          352    .ARM.Collect$$rtexit$$00000000  c_w.l(rtexit.o)
-    0x00000326   0x00000000   Code   RO          398    .ARM.Collect$$rtexit$$00000002  c_w.l(rtexit2.o)
-    0x00000326   0x00000004   Code   RO          399    .ARM.Collect$$rtexit$$00000003  c_w.l(rtexit2.o)
-    0x0000032a   0x00000006   Code   RO          400    .ARM.Collect$$rtexit$$00000004  c_w.l(rtexit2.o)
+    0x000002dc   0x0000001c   Code   RO          431    !!handler_zi        c_w.l(__scatter_zi.o)
+    0x000002f8   0x00000002   Code   RO          303    .ARM.Collect$$libinit$$00000000  c_w.l(libinit.o)
+    0x000002fa   0x00000000   Code   RO          307    .ARM.Collect$$libinit$$00000002  c_w.l(libinit2.o)
+    0x000002fa   0x00000000   Code   RO          310    .ARM.Collect$$libinit$$00000008  c_w.l(libinit2.o)
+    0x000002fa   0x00000000   Code   RO          312    .ARM.Collect$$libinit$$0000000A  c_w.l(libinit2.o)
+    0x000002fa   0x00000000   Code   RO          314    .ARM.Collect$$libinit$$0000000C  c_w.l(libinit2.o)
+    0x000002fa   0x00000006   Code   RO          315    .ARM.Collect$$libinit$$0000000D  c_w.l(libinit2.o)
+    0x00000300   0x00000000   Code   RO          317    .ARM.Collect$$libinit$$0000000F  c_w.l(libinit2.o)
+    0x00000300   0x0000000c   Code   RO          318    .ARM.Collect$$libinit$$00000010  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          319    .ARM.Collect$$libinit$$00000011  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          321    .ARM.Collect$$libinit$$00000013  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          323    .ARM.Collect$$libinit$$00000015  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          325    .ARM.Collect$$libinit$$00000017  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          327    .ARM.Collect$$libinit$$00000019  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          329    .ARM.Collect$$libinit$$0000001B  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          331    .ARM.Collect$$libinit$$0000001D  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          333    .ARM.Collect$$libinit$$0000001F  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          335    .ARM.Collect$$libinit$$00000021  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          337    .ARM.Collect$$libinit$$00000023  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          341    .ARM.Collect$$libinit$$0000002A  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          343    .ARM.Collect$$libinit$$0000002C  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          345    .ARM.Collect$$libinit$$0000002E  c_w.l(libinit2.o)
+    0x0000030c   0x00000000   Code   RO          347    .ARM.Collect$$libinit$$00000030  c_w.l(libinit2.o)
+    0x0000030c   0x00000002   Code   RO          348    .ARM.Collect$$libinit$$00000031  c_w.l(libinit2.o)
+    0x0000030e   0x00000002   Code   RO          368    .ARM.Collect$$libshutdown$$00000000  c_w.l(libshutdown.o)
+    0x00000310   0x00000000   Code   RO          382    .ARM.Collect$$libshutdown$$00000003  c_w.l(libshutdown2.o)
+    0x00000310   0x00000000   Code   RO          385    .ARM.Collect$$libshutdown$$00000006  c_w.l(libshutdown2.o)
+    0x00000310   0x00000000   Code   RO          388    .ARM.Collect$$libshutdown$$00000009  c_w.l(libshutdown2.o)
+    0x00000310   0x00000000   Code   RO          390    .ARM.Collect$$libshutdown$$0000000B  c_w.l(libshutdown2.o)
+    0x00000310   0x00000000   Code   RO          393    .ARM.Collect$$libshutdown$$0000000E  c_w.l(libshutdown2.o)
+    0x00000310   0x00000002   Code   RO          394    .ARM.Collect$$libshutdown$$0000000F  c_w.l(libshutdown2.o)
+    0x00000312   0x00000000   Code   RO          254    .ARM.Collect$$rtentry$$00000000  c_w.l(rtentry.o)
+    0x00000312   0x00000000   Code   RO          266    .ARM.Collect$$rtentry$$00000002  c_w.l(rtentry2.o)
+    0x00000312   0x00000006   Code   RO          278    .ARM.Collect$$rtentry$$00000004  c_w.l(rtentry4.o)
+    0x00000318   0x00000000   Code   RO          268    .ARM.Collect$$rtentry$$00000009  c_w.l(rtentry2.o)
+    0x00000318   0x00000004   Code   RO          269    .ARM.Collect$$rtentry$$0000000A  c_w.l(rtentry2.o)
+    0x0000031c   0x00000000   Code   RO          271    .ARM.Collect$$rtentry$$0000000C  c_w.l(rtentry2.o)
+    0x0000031c   0x00000008   Code   RO          272    .ARM.Collect$$rtentry$$0000000D  c_w.l(rtentry2.o)
+    0x00000324   0x00000002   Code   RO          304    .ARM.Collect$$rtexit$$00000000  c_w.l(rtexit.o)
+    0x00000326   0x00000000   Code   RO          350    .ARM.Collect$$rtexit$$00000002  c_w.l(rtexit2.o)
+    0x00000326   0x00000004   Code   RO          351    .ARM.Collect$$rtexit$$00000003  c_w.l(rtexit2.o)
+    0x0000032a   0x00000006   Code   RO          352    .ARM.Collect$$rtexit$$00000004  c_w.l(rtexit2.o)
     0x00000330   0x00000030   Code   RO            4    .text               startup.o
-    0x00000360   0x0000001a   Code   RO          265    .text               c_w.l(atoi.o)
+    0x00000360   0x0000001a   Code   RO          246    .text               c_w.l(atoi.o)
     0x0000037a   0x00000002   PAD
-    0x0000037c   0x00000080   Code   RO          267    .text               c_w.l(strcmpv7m.o)
-    0x000003fc   0x00000006   Code   RO          269    .text               c_w.l(heapauxi.o)
+    0x0000037c   0x00000080   Code   RO          248    .text               c_w.l(strcmpv7m.o)
+    0x000003fc   0x00000006   Code   RO          250    .text               c_w.l(heapauxi.o)
     0x00000402   0x00000002   PAD
-    0x00000404   0x00000008   Code   RO          299    .text               c_w.l(rt_errno_addr_intlibspace.o)
-    0x0000040c   0x00000070   Code   RO          301    .text               c_w.l(strtol.o)
-    0x0000047c   0x00000008   Code   RO          310    .text               c_w.l(libspace.o)
-    0x00000484   0x00000010   Code   RO          328    .text               c_w.l(rt_ctype_table.o)
-    0x00000494   0x0000009e   Code   RO          330    .text               c_w.l(_strtoul.o)
-    0x00000532   0x0000004a   Code   RO          332    .text               c_w.l(sys_stackheap_outer.o)
-    0x0000057c   0x00000008   Code   RO          337    .text               c_w.l(rt_locale_intlibspace.o)
-    0x00000584   0x0000001c   Code   RO          339    .text               c_w.l(_chval.o)
-    0x000005a0   0x0000000c   Code   RO          344    .text               c_w.l(exit.o)
-    0x000005ac   0x0000000c   Code   RO          408    .text               c_w.l(sys_exit.o)
-    0x000005b8   0x00000002   Code   RO          419    .text               c_w.l(use_no_semi.o)
-    0x000005ba   0x00000000   Code   RO          421    .text               c_w.l(indicate_semi.o)
+    0x00000404   0x00000008   Code   RO          258    .text               c_w.l(rt_errno_addr_intlibspace.o)
+    0x0000040c   0x00000070   Code   RO          260    .text               c_w.l(strtol.o)
+    0x0000047c   0x00000008   Code   RO          262    .text               c_w.l(libspace.o)
+    0x00000484   0x00000010   Code   RO          280    .text               c_w.l(rt_ctype_table.o)
+    0x00000494   0x0000009e   Code   RO          282    .text               c_w.l(_strtoul.o)
+    0x00000532   0x0000004a   Code   RO          284    .text               c_w.l(sys_stackheap_outer.o)
+    0x0000057c   0x00000008   Code   RO          289    .text               c_w.l(rt_locale_intlibspace.o)
+    0x00000584   0x0000001c   Code   RO          291    .text               c_w.l(_chval.o)
+    0x000005a0   0x0000000c   Code   RO          296    .text               c_w.l(exit.o)
+    0x000005ac   0x0000000c   Code   RO          360    .text               c_w.l(sys_exit.o)
+    0x000005b8   0x00000002   Code   RO          371    .text               c_w.l(use_no_semi.o)
+    0x000005ba   0x00000000   Code   RO          373    .text               c_w.l(indicate_semi.o)
     0x000005ba   0x00000002   PAD
-    0x000005bc   0x00000044   Code   RO           94    i.GPIOPortF_Handler  uarttestmain.o
-    0x00000600   0x000000d4   Code   RO           95    i.GetUART           uarttestmain.o
-    0x000006d4   0x00000024   Code   RO           96    i.LaserOff          uarttestmain.o
-    0x000006f8   0x00000024   Code   RO           97    i.LaserOn           uarttestmain.o
-    0x0000071c   0x00000010   Code   RO           98    i.OutCRLF           uarttestmain.o
-    0x0000072c   0x00000104   Code   RO           99    i.OutUART           uarttestmain.o
-    0x00000830   0x00000120   Code   RO          100    i.PortA_Init        uarttestmain.o
-    0x00000950   0x0000007c   Code   RO          101    i.PortB_Init        uarttestmain.o
-    0x000009cc   0x0000008c   Code   RO          102    i.PortC_Init        uarttestmain.o
-    0x00000a58   0x000001ac   Code   RO          103    i.PortF_Init        uarttestmain.o
-    0x00000c04   0x000000a4   Code   RO          104    i.ServoFeedback     uarttestmain.o
-    0x00000ca8   0x0000007c   Code   RO          106    i.StepOut           uarttestmain.o
-    0x00000d24   0x00000088   Code   RO          107    i.SysTick_Handler   uarttestmain.o
-    0x00000dac   0x0000001e   Code   RO          108    i.SysTick_Init      uarttestmain.o
-    0x00000dca   0x00000002   PAD
-    0x00000dcc   0x00000018   Code   RO           28    i.UART_InChar       uart.o
-    0x00000de4   0x00000042   Code   RO           29    i.UART_InString     uart.o
-    0x00000e26   0x0000004c   Code   RO           30    i.UART_InUDec       uart.o
-    0x00000e72   0x00000002   PAD
-    0x00000e74   0x00000098   Code   RO           32    i.UART_Init         uart.o
-    0x00000f0c   0x00000018   Code   RO           33    i.UART_OutChar      uart.o
-    0x00000f24   0x00000016   Code   RO           34    i.UART_OutString    uart.o
-    0x00000f3a   0x0000002a   Code   RO           35    i.UART_OutUDec      uart.o
-    0x00000f64   0x0000000c   Code   RO          109    i.UpdateServo       uarttestmain.o
-    0x00000f70   0x00000044   Code   RO          111    i.main              uarttestmain.o
-    0x00000fb4   0x00000018   Code   RO          116    i.step_left         uarttestmain.o
-    0x00000fcc   0x00000018   Code   RO          118    i.step_right        uarttestmain.o
-    0x00000fe4   0x00000028   Code   RO          119    i.step_sixteenth    uarttestmain.o
-    0x0000100c   0x0000002c   Code   RO          342    locale$$code        c_w.l(lc_ctype_c.o)
-    0x00001038   0x0000005a   Code   RO          279    x$fpl$dfixu         fz_ws.l(dfixu.o)
-    0x00001092   0x0000009c   Code   RO          305    x$fpl$dnaninf       fz_ws.l(dnaninf.o)
-    0x0000112e   0x00000000   Code   RO          309    x$fpl$usenofp       fz_ws.l(usenofp.o)
-    0x0000112e   0x00000002   PAD
-    0x00001130   0x00000020   Data   RO          473    Region$$Table       anon$$obj.o
-    0x00001150   0x00000110   Data   RO          341    locale$$data        c_w.l(lc_ctype_c.o)
+    0x000005bc   0x00000034   Code   RO           94    i.GPIOPortF_Handler  uarttestmain.o
+    0x000005f0   0x000000dc   Code   RO           95    i.GetUART           uarttestmain.o
+    0x000006cc   0x00000024   Code   RO           96    i.LaserOff          uarttestmain.o
+    0x000006f0   0x00000024   Code   RO           97    i.LaserOn           uarttestmain.o
+    0x00000714   0x00000124   Code   RO           99    i.PortA_Init        uarttestmain.o
+    0x00000838   0x00000080   Code   RO          100    i.PortB_Init        uarttestmain.o
+    0x000008b8   0x00000090   Code   RO          101    i.PortC_Init        uarttestmain.o
+    0x00000948   0x000001b0   Code   RO          102    i.PortF_Init        uarttestmain.o
+    0x00000af8   0x000000a4   Code   RO          103    i.ServoFeedback     uarttestmain.o
+    0x00000b9c   0x0000007c   Code   RO          104    i.StepOut           uarttestmain.o
+    0x00000c18   0x00000088   Code   RO          105    i.SysTick_Handler   uarttestmain.o
+    0x00000ca0   0x0000001e   Code   RO          106    i.SysTick_Init      uarttestmain.o
+    0x00000cbe   0x00000002   PAD
+    0x00000cc0   0x00000018   Code   RO           28    i.UART_InChar       uart.o
+    0x00000cd8   0x00000042   Code   RO           29    i.UART_InString     uart.o
+    0x00000d1a   0x0000004c   Code   RO           30    i.UART_InUDec       uart.o
+    0x00000d66   0x00000002   PAD
+    0x00000d68   0x00000098   Code   RO           32    i.UART_Init         uart.o
+    0x00000e00   0x00000018   Code   RO           33    i.UART_OutChar      uart.o
+    0x00000e18   0x0000000c   Code   RO          107    i.UpdateServo       uarttestmain.o
+    0x00000e24   0x00000044   Code   RO          108    i.main              uarttestmain.o
+    0x00000e68   0x00000018   Code   RO          112    i.step_left         uarttestmain.o
+    0x00000e80   0x00000018   Code   RO          114    i.step_right        uarttestmain.o
+    0x00000e98   0x0000001c   Code   RO          116    i.step_thirtysecond  uarttestmain.o
+    0x00000eb4   0x0000002c   Code   RO          294    locale$$code        c_w.l(lc_ctype_c.o)
+    0x00000ee0   0x00000020   Data   RO          425    Region$$Table       anon$$obj.o
+    0x00000f00   0x00000110   Data   RO          293    locale$$data        c_w.l(lc_ctype_c.o)
 
 
-    Execution Region ER_RW (Base: 0x20000000, Size: 0x00000080, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_RW (Base: 0x20000000, Size: 0x00000038, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000000   0x0000007f   Data   RW          121    .data               uarttestmain.o
+    0x20000000   0x00000037   Data   RW          117    .data               uarttestmain.o
 
 
-    Execution Region ER_ZI (Base: 0x20000080, Size: 0x00000460, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_ZI (Base: 0x20000038, Size: 0x00000460, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000080   0x00000060   Zero   RW          311    .bss                c_w.l(libspace.o)
-    0x200000e0   0x00000000   Zero   RW            2    HEAP                startup.o
-    0x200000e0   0x00000400   Zero   RW            1    STACK               startup.o
+    0x20000038   0x00000060   Zero   RW          263    .bss                c_w.l(libspace.o)
+    0x20000098   0x00000000   Zero   RW            2    HEAP                startup.o
+    0x20000098   0x00000400   Zero   RW            1    STACK               startup.o
 
 
 ==============================================================================
@@ -854,11 +762,11 @@ Image component sizes
 
          0          0          0          0          0       1444   pll.o
        692        632          0          0       1024        892   startup.o
-       406         36          0          0          0       3099   uart.o
-      2230        506          0        127          0       9577   uarttestmain.o
+       342         36          0          0          0       2239   uart.o
+      1950        372          0         55          0       8238   uarttestmain.o
 
     ----------------------------------------------------------------------
-      3332       1174         32        128       1024      15012   Object Totals
+      2988       1040         32         56       1024      12813   Object Totals
          0          0         32          0          0          0   (incl. Generated)
          4          0          0          1          0          0   (incl. Padding)
 
@@ -895,23 +803,19 @@ Image component sizes
         12          4          0          0          0         68   sys_exit.o
         74          0          0          0          0         80   sys_stackheap_outer.o
          2          0          0          0          0         68   use_no_semi.o
-        90          4          0          0          0         92   dfixu.o
-       156          4          0          0          0         92   dnaninf.o
-         0          0          0          0          0          0   usenofp.o
 
     ----------------------------------------------------------------------
-      1068         46        272          0         96       1444   Library Totals
-        10          0          0          0          0          0   (incl. Padding)
+       820         38        272          0         96       1260   Library Totals
+         8          0          0          0          0          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Name
 
        812         38        272          0         96       1260   c_w.l
-       246          8          0          0          0        184   fz_ws.l
 
     ----------------------------------------------------------------------
-      1068         46        272          0         96       1444   Library Totals
+       820         38        272          0         96       1260   Library Totals
 
     ----------------------------------------------------------------------
 
@@ -920,15 +824,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-      4400       1220        304        128       1120      14376   Grand Totals
-      4400       1220        304        128       1120      14376   ELF Image Totals
-      4400       1220        304        128          0          0   ROM Totals
+      3808       1078        304         56       1120      12305   Grand Totals
+      3808       1078        304         56       1120      12305   ELF Image Totals
+      3808       1078        304         56          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                 4704 (   4.59kB)
-    Total RW  Size (RW Data + ZI Data)              1248 (   1.22kB)
-    Total ROM Size (Code + RO Data + RW Data)       4832 (   4.72kB)
+    Total RO  Size (Code + RO Data)                 4112 (   4.02kB)
+    Total RW  Size (RW Data + ZI Data)              1176 (   1.15kB)
+    Total ROM Size (Code + RO Data + RW Data)       4168 (   4.07kB)
 
 ==============================================================================
 
