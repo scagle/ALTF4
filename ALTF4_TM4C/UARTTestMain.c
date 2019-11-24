@@ -26,6 +26,7 @@
 #include "tm4c123gh6pm.h"
 #include "UART.h"
 #include "stdlib.h"
+#include "bluetooth.h"
 /***********************************************************************************/
 #define FULL 				 0x00
 #define HALF 				 0x80
@@ -136,7 +137,7 @@ void PortF_Init(){ unsigned long delay;//for LED debugging
 	GPIO_PORTF_IM_R    |=  0x11; //arm interrupt
 	
 	NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|0x00000000; 	// priority 0 interrupt for switches				 
-  NVIC_EN0_R  = 0x40000000;      			// enable interrupt 30 in NVIC
+	NVIC_EN0_R  = 0x40000000;      			// enable interrupt 30 in NVIC
 	
 	//PWM control - for M1PWM5 on pin PF5
 	SYSCTL_RCGCPWM_R |= 0x02; 		// enable PWM M1
@@ -286,77 +287,85 @@ void LaserOff(){ GPIO_PORTB_DATA_R &= ~0x10; NoneFlag = 0; }
 /***********************************************************************************/
 // Send carriage return, line feed
 void OutCRLF(void){ UART_OutChar(CR); UART_OutChar(LF); }
+
+// Bluetooth reading and output
+void GetBluetooth(){
+	unsigned char character = UART2_NonBlockingInChar();
+}
+
 // UART reading and output
 void GetUART(){
-		// Change color to red before receiving 4 characters
-		//GPIO_PORTF_DATA_R  = 0x02;
-		
-		// Get first "strt" string and check if it correct
-		char temp_check = 0x00; 
-		int  temp = 9000;
-		UART_InString(STRT, 5);
+	// Change color to red before receiving 4 characters
+	//GPIO_PORTF_DATA_R  = 0x02;
+	
+	// Get first "strt" string and check if it correct
+	char temp_check = 0x00; 
+	int  temp = 9000;
+	UART_InString(STRT, 5);
 
-		temp_check = strcmp(STRT, "strt");
-		if(temp_check != 0){
-			GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
-			temp = UART_InUDec();
-			servo_basic = temp;
-			UpdateServo(temp);
-			return;
-		}
-		
-		// Read either none or number
-		UART_InString(test, 5);
-		temp_check = strcmp(test, "none");
-		// Did not get a none
-		if(strcmp(test, "none") != 0){
-			LaserOn();
-			// Convert string to int
-			xGreen = atoi(test);
+	temp_check = strcmp(STRT, "strt");
+	if(temp_check != 0){
+		GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
+		temp = UART_InUDec();
+		servo_basic = temp;
+		UpdateServo(temp);
+		return;
+	}
+	
+	// Read either none or number
+	UART_InString(test, 5);
+	temp_check = strcmp(test, "none");
+	// Did not get a none
+	if(strcmp(test, "none") != 0){
+		LaserOn();
+		// Convert string to int
+		xGreen = atoi(test);
 
-			// Get 3 remaining numbers through UART			
-			yGreen = UART_InUDec();
-			xRed   = UART_InUDec();
-			yRed   = UART_InUDec();	
-			//GPIO_PORTF_DATA_R |= 0x08;
-		}
-		// None
-		else{ LaserOff(); }
-		
-		// Get stop
-		UART_InString(STOP, 5);
-		
-		if(strcmp(STOP, "stop") != 0){
-			//GPIO_PORTF_DATA_R |= 0x04;
-			return;
-		}
-		//GPIO_PORTF_DATA_R = 0x0E; //white if data good
+		// Get 3 remaining numbers through UART			
+		yGreen = UART_InUDec();
+		xRed   = UART_InUDec();
+		yRed   = UART_InUDec();	
+		//GPIO_PORTF_DATA_R |= 0x08;
+	}
+	// None
+	else{ LaserOff(); }
+	
+	// Get stop
+	UART_InString(STOP, 5);
+	
+	if(strcmp(STOP, "stop") != 0){
+		//GPIO_PORTF_DATA_R |= 0x04;
+		return;
+	}
+	//GPIO_PORTF_DATA_R = 0x0E; //white if data good
 
-		// Change color to sky blue after receiving 4 characters
-		//GPIO_PORTF_DATA_R  = 0x0C;
+	// Change color to sky blue after receiving 4 characters
+	//GPIO_PORTF_DATA_R  = 0x0C;
 }
 
 //debug code
 int main(void){
-  PortA_Init();
+	PortA_Init();
 	PortB_Init();
 	PortC_Init();
 	PortF_Init();
 	SysTick_Init();
 	UART_Init();
+	BT_Init()		// Bluetooth UART from the glove
 	
 	UpdateServo(servo_basic);
 	//step_thirtysecond();
 	step_full();
 
-  while(1){
+	while(1){
 		// Start, get UART character
+		GetBluetooth();
 		GetUART();
 		if(NoneFlag){
 			ServoFeedback();
 			StepOut();
 		}
-  }
+	}
 }
 
 
