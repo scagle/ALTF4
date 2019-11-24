@@ -15,6 +15,7 @@
  * MS2 : PB5
  *
  * LASR: PB4 Controls status of LASER
+ * GUN:  PB1 Electronic Control of gun firing mechanism
  *
  * PF4 : sw2 - changes motor resolution
  * PF0 : sw1 - changes motor direction
@@ -26,6 +27,7 @@
 #include "tm4c123gh6pm.h"
 #include "UART.h"
 #include "stdlib.h"
+#include "bluetooth.h"
 /***********************************************************************************/
 #define FULL 				 0x00
 #define HALF 				 0x80
@@ -43,24 +45,30 @@ int en = 419;
 // UART coordinates
 unsigned int xGreen, yGreen, xRed, yRed;
 
-// Stepper Motor vars
+// Stepper Motor variables
 unsigned int STEP_COUNT = 0;
 char step_en = 0x01;
 
-// UART vars
+// UART variables
 char STRT[5];
 char STOP[5];
 char test[5];
-
-char NoneFlag = 0;
+char NewDataFlag = 0;		// Flag set when new data is received over UART0
 
 // Servo basic feedback val
 unsigned int servo_basic = 12000;
 double Servo_pwm = 8000;
+
+// Bluetooth flags
+char FiringFlag = 0;		// Flag set when glove is sending fire signal 
+char GreenLaserOnFlag = 0;	// Flag set when glove's green laser is on
 /***********************************************************************************/
 void OutUART(void);
 void LaserOn(void);
 void LaserOff(void);
+void LaserToggle(void);
+void ActivateGun(void);
+void DeactivateGun(void);
 int  strcmp(const char *, const char *);
 /***********************************************************************************/
 void PortA_Init(){ unsigned long delay;
@@ -93,12 +101,12 @@ void PortA_Init(){ unsigned long delay;
 void PortB_Init(){ unsigned long delay;
 	SYSCTL_RCGC2_R    |= 0x00000002;		//activate Port B
 	delay = SYSCTL_RCGC2_R; delay++;
-	GPIO_PORTB_CR_R   |= 0xF0;  		    //allow changes PB7,6,5,4
-	GPIO_PORTB_AMSEL_R&= 0x0F;  			  //disable analog for PB7,6,5,4
-	GPIO_PORTB_PCTL_R &= 0x0000FFFF; 		//set PB7,6,5,4 as GPIO
-	GPIO_PORTB_DIR_R  |= 0xF0;					//set PB7,6,5,4 as output
-	GPIO_PORTB_AFSEL_R&= 0x0F;					//disable alt func PB7,6,5,4
-	GPIO_PORTB_DEN_R  |= 0xF0;					//digital enable PB7,6,5,4
+	GPIO_PORTB_CR_R   |= 0xF2;				//allow changes PB7,6,5,4,1
+	GPIO_PORTB_AMSEL_R&= 0x0D;				//disable analog for PB7,6,5,4,1
+	GPIO_PORTB_PCTL_R &= 0x0000FF0F;		//set PB7,6,5,4,1 as GPIO
+	GPIO_PORTB_DIR_R  |= 0xF2;				//set PB7,6,5,4,1 as output
+	GPIO_PORTB_AFSEL_R&= 0x0D;				//disable alt func PB7,6,5,4,1
+	GPIO_PORTB_DEN_R  |= 0xF2;				//digital enable PB7,6,5,4,1
 }
 void PortC_Init(){ unsigned long delay;
 	SYSCTL_RCGC2_R 		 |= 0x00000004; //intialize port C
@@ -136,7 +144,7 @@ void PortF_Init(){ unsigned long delay;//for LED debugging
 	GPIO_PORTF_IM_R    |=  0x11; //arm interrupt
 	
 	NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|0x00000000; 	// priority 0 interrupt for switches				 
-  NVIC_EN0_R  = 0x40000000;      			// enable interrupt 30 in NVIC
+	NVIC_EN0_R  = 0x40000000;      			// enable interrupt 30 in NVIC
 	
 	//PWM control - for M1PWM5 on pin PF5
 	SYSCTL_RCGCPWM_R |= 0x02; 		// enable PWM M1
@@ -149,7 +157,7 @@ void PortF_Init(){ unsigned long delay;//for LED debugging
 	//using M1 and generator 3 for output 5
 	//PWM1_2_LOAD_R = period -1;	// set period duration with period variable
 	PWM1_2_LOAD_R = 800000;			// set period to 40,000
-  
+
 	//using M1, generator 3, output 2, so CMPB is used instead of CMPA
 	//PWM1_2_CMPB_R = duty cycle -1;
 	PWM1_2_CMPB_R = 400000;     // set duty cycle to 50%, for initial half brightness
@@ -172,7 +180,7 @@ void SysTick_Init(){
 /***********************************************************************************/
 void SysTick_Handler(void){
 	// steps enabled and pulse output count
-	if(	step_en && STEP_COUNT > 0){
+	if( step_en && STEP_COUNT > 0){
 		// check value of step output
 		if( GPIO_PORTC_DATA_R & 0x40){// high
 			//set low and decrease counter
@@ -193,28 +201,27 @@ void SysTick_Handler(void){
 }
  
 void GPIOPortF_Handler(void){
-	 if(GPIO_PORTF_DATA_R & 0x01){//left button
-			step_en = 0x01;
-		  STEP_COUNT = 100;
-			GPIO_PORTF_DATA_R = GPIO_PORTF_DATA_R ^ 0x08;
+	if(GPIO_PORTF_DATA_R & 0x01){//left button
+		step_en = 0x01;
+		STEP_COUNT = 100;
+		GPIO_PORTF_DATA_R = GPIO_PORTF_DATA_R ^ 0x08;
 	 }
-	 if(GPIO_PORTF_DATA_R & 0x10){//right button
-			// Do nothing for now
-	 }
-	 GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
+	if(GPIO_PORTF_DATA_R & 0x10){//right button
+		// Do nothing for now
+	}
+	GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
 }
 /***********************************************************************************/
 // Functions to change step direction
 void step_left(void) { GPIO_PORTC_DATA_R |=  LEFT; }
 void step_right(void){ GPIO_PORTC_DATA_R &= RIGHT; }
 // Functions to change step resolution
-void step_full(void)        { GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | FULL;				}
-void step_half(void)   			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | HALF;        }
-void step_quarter(void) 		{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | QUARTER;     }
-void step_eighth(void) 			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | EIGHTH;      }
-void step_sixteenth(void)		{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | SIXTEENTH;   }
-void step_thirtysecond(void){ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | THIRTYSECOND;}
-
+void step_full(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | FULL;			}
+void step_half(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | HALF;			}
+void step_quarter(void) 		{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | QUARTER;		}
+void step_eighth(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | EIGHTH;		}
+void step_sixteenth(void)		{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | SIXTEENTH;		}
+void step_thirtysecond(void)	{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | THIRTYSECOND;	}
 //Change 3 bit outputs to stepper motor driver
 void StepOut(){
 	// Have an output enable & an output counter to send x number of pulses
@@ -247,7 +254,6 @@ void StepOut(){
 /***********************************************************************************/
 // Manually set servo values
 void UpdateServo(unsigned int pwm){ PWM1_1_CMPB_R = pwm; }
-
 // Basic movement up and down
 void ServoFeedback(){
 	// Assume yGreen and yRed variables already read from UART
@@ -281,82 +287,111 @@ void ServoFeedback(){
 	UpdateServo(servo_basic);
 }
 /***********************************************************************************/
-void LaserOn() { GPIO_PORTB_DATA_R |=  0x10; NoneFlag = 1; }
-void LaserOff(){ GPIO_PORTB_DATA_R &= ~0x10; NoneFlag = 0; }
+void LaserOn() { GPIO_PORTB_DATA_R |=  0x10; NewDataFlag = 1; }
+void LaserOff(){ GPIO_PORTB_DATA_R &= ~0x10; NewDataFlag = 0; }
+void LaserToggle(){ GPIO_PORTB_DATA_R ^= 0x10; NewDataFlag ^= 1; }
+void ActivateGun(){ GPIO_PORTB_DATA_R |= 0x02; FiringFlag = 1; }
+void DeactivateGun(){ GPIO_PORTB_DATA_R &= ~0x02; FiringFlag = 0; }
 /***********************************************************************************/
 // Send carriage return, line feed
 void OutCRLF(void){ UART_OutChar(CR); UART_OutChar(LF); }
+// Bluetooth reading and output
+void GetBluetooth(){
+	unsigned char character = UART2_NonBlockingInChar();
+	switch ( character )
+	{
+		case 'f':	// Start (F)iring
+			ActivateGun();
+			break;
+		case 's':	// (S)top Firing
+			DeactivateGun();
+			break;
+		case 'h':	// Laser on ( (H)igh )
+			GreenLaserOnFlag = 1;
+			break;
+		case 'l':	// Laser off ( (L)ow )
+			GreenLaserOnFlag = 0;
+			break;
+		default:
+			break;
+	}
+}
+
 // UART reading and output
 void GetUART(){
-		// Change color to red before receiving 4 characters
-		//GPIO_PORTF_DATA_R  = 0x02;
-		
-		// Get first "strt" string and check if it correct
-		char temp_check = 0x00; 
-		int  temp = 9000;
-		UART_InString(STRT, 5);
+	// Change color to red before receiving 4 characters
+	//GPIO_PORTF_DATA_R  = 0x02;
+	
+	// Get first "strt" string and check if it correct
+	char temp_check = 0x00; 
+	int  temp = 9000;
+	UART_InString(STRT, 5);
 
-		temp_check = strcmp(STRT, "strt");
-		if(temp_check != 0){
-			GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
-			temp = UART_InUDec();
-			servo_basic = temp;
-			UpdateServo(temp);
-			return;
-		}
-		
-		// Read either none or number
-		UART_InString(test, 5);
-		temp_check = strcmp(test, "none");
-		// Did not get a none
-		if(strcmp(test, "none") != 0){
-			LaserOn();
-			// Convert string to int
-			xGreen = atoi(test);
+	temp_check = strcmp(STRT, "strt");
+	if(temp_check != 0){
+		GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
+		temp = UART_InUDec();
+		servo_basic = temp;
+		UpdateServo(temp);
+		return;
+	}
+	
+	// Read either none or number
+	UART_InString(test, 5);
+	temp_check = strcmp(test, "none");
+	// Did not get a none
+	if(strcmp(test, "none") != 0){
+		LaserOn();
+		// Convert string to int
+		xGreen = atoi(test);
 
-			// Get 3 remaining numbers through UART			
-			yGreen = UART_InUDec();
-			xRed   = UART_InUDec();
-			yRed   = UART_InUDec();	
-			//GPIO_PORTF_DATA_R |= 0x08;
-		}
-		// None
-		else{ LaserOff(); }
-		
-		// Get stop
-		UART_InString(STOP, 5);
-		
-		if(strcmp(STOP, "stop") != 0){
-			//GPIO_PORTF_DATA_R |= 0x04;
-			return;
-		}
-		//GPIO_PORTF_DATA_R = 0x0E; //white if data good
+		// Get 3 remaining numbers through UART			
+		yGreen = UART_InUDec();
+		xRed   = UART_InUDec();
+		yRed   = UART_InUDec();	
+		//GPIO_PORTF_DATA_R |= 0x08;
+	}
+	// None
+	else{ LaserOff(); }
+	
+	// Get stop
+	UART_InString(STOP, 5);
+	
+	if(strcmp(STOP, "stop") != 0){
+		//GPIO_PORTF_DATA_R |= 0x04;
+		return;
+	}
+	//GPIO_PORTF_DATA_R = 0x0E; //white if data good
 
-		// Change color to sky blue after receiving 4 characters
-		//GPIO_PORTF_DATA_R  = 0x0C;
+	// Change color to sky blue after receiving 4 characters
+	//GPIO_PORTF_DATA_R  = 0x0C;
 }
 
 //debug code
 int main(void){
-  PortA_Init();
+	PortA_Init();
 	PortB_Init();
 	PortC_Init();
 	PortF_Init();
 	SysTick_Init();
 	UART_Init();
+	BT_Init();		// Bluetooth UART from the glove
 	
 	UpdateServo(servo_basic);
 	//step_thirtysecond();
 	step_full();
 
-  while(1){
-		// Start, get UART character
-		GetUART();
-		if(NoneFlag){
+	while(1){
+		GetBluetooth();		// Handle Glove UART input
+		GetUART();			// Handle Computer UART input
+
+		// Update Turret Servo / Stepper values
+		// (Only updates if glove's green laser is on, and if we got new data)
+		if(GreenLaserOnFlag && NewDataFlag){
 			ServoFeedback();
 			StepOut();
 		}
-  }
+	}
 }
 
 
