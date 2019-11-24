@@ -95,96 +95,96 @@ void PortF_Init(){ unsigned long delay;//for LED debugging
  }
 
 void Timer1_Init(void){
-    SYSCTL_RCGCTIMER_R |= 0x02;   // 0) activate TIMER1
-    //PeriodicTask = task;          // user function
-    TIMER1_CTL_R &= ~0x00000001;  // 1) disable TIMER1A during setup
-    TIMER1_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
-    TIMER1_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
-    TIMER1_TAILR_R = 1600000;    // 4) reload value
-    TIMER1_TAPR_R = 0;            // 5) bus clock resolution
-    TIMER1_ICR_R = 0x00000001;    // 6) clear TIMER1A timeout flag
-    TIMER1_IMR_R = 0x00000001;    // 7) arm timeout interrupt
-    NVIC_PRI5_R = (NVIC_PRI5_R&0xFFFF00FF)|0x00008000; // 8) priority 4
-    // interrupts enabled in the main program after all devices initialized
-    // vector number 37, interrupt number 21
-    NVIC_EN0_R = 1<<21;           // 9) enable IRQ 21 in NVIC
-    TIMER1_CTL_R |= 0x00000001;    // 10) enable TIMER1A
+	SYSCTL_RCGCTIMER_R |= 0x02;   // 0) activate TIMER1
+	//PeriodicTask = task;          // user function
+	TIMER1_CTL_R &= ~0x00000001;  // 1) disable TIMER1A during setup
+	TIMER1_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
+	TIMER1_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
+	TIMER1_TAILR_R = 1600000;    // 4) reload value
+	TIMER1_TAPR_R = 0;            // 5) bus clock resolution
+	TIMER1_ICR_R = 0x00000001;    // 6) clear TIMER1A timeout flag
+	TIMER1_IMR_R = 0x00000001;    // 7) arm timeout interrupt
+	NVIC_PRI5_R = (NVIC_PRI5_R&0xFFFF00FF)|0x00008000; // 8) priority 4
+	// interrupts enabled in the main program after all devices initialized
+	// vector number 37, interrupt number 21
+	NVIC_EN0_R = 1<<21;           // 9) enable IRQ 21 in NVIC
+	TIMER1_CTL_R |= 0x00000001;    // 10) enable TIMER1A
 }
 
 /***********************************************************************************/
 void ADC_Init(void){   
-    // AIN2 -> (PE1)  POTENTIOMETER
-    // AIN9 -> (PE4)  RIGHT IR SENSOR
-    // AIN8 -> (PE5)  LEFT IR SENSOR 
-    volatile unsigned long delay;
-    SYSCTL_RCGCADC_R     |=  0x00000001                   ; // 1) activate ADC0
-    SYSCTL_RCGCGPIO_R    |=  SYSCTL_RCGCGPIO_R4           ; // 1) activate clock for Port E
-    //WaitForPorts(0x10)                                    ; // small delay for GPIO
-    GPIO_PORTE_DIR_R     &= ~0x32                         ; // 3) make PE1, PE4, and PE5 input
-    GPIO_PORTE_AFSEL_R   |=  0x32                         ; // 4) enable alternate function on PE1, PE4, and PE5
-    GPIO_PORTE_DEN_R     &= ~0x32                         ; // 5) disable digital I/O on PE1, PE4, and PE5
-    GPIO_PORTE_PCTL_R     =  GPIO_PORTE_PCTL_R&0xFF00FF0F ;
-    GPIO_PORTE_AMSEL_R   |=  0x32                         ; // 6) enable analog functionality on PE1, PE4, and PE5
-    ADC0_PC_R            &= ~0xF                          ; // 8) clear max sample rate field
-    ADC0_PC_R            |=  0x1                          ; //    configure for 125K samples/sec
-    ADC0_SSPRI_R          =  0x3210                       ; // 9) Sequencer 3 is lowest priority
-    ADC0_ACTSS_R         &= ~0x0004                       ; // 10) disable sample sequencer 2
-    ADC0_EMUX_R          &= ~0x0F00                       ; // 11) seq2 is software trigger
-    ADC0_SSMUX2_R         =  0x0892                       ; // 12) set channels for SS2
-    ADC0_SSCTL2_R         =  0x0600                       ; // 13) no D0 END0 IE0 TS0 D1 END1 IE1 TS1 D2 TS2, yes EN    D2 IE2
-    ADC0_IM_R            &= ~0x0004                       ; // 14) disable SS2 interrupts
-    ADC0_ACTSS_R         |=  0x0004                       ; // 15) enable sample sequencer 2
+	// AIN2 -> (PE1)  POTENTIOMETER
+	// AIN9 -> (PE4)  RIGHT IR SENSOR
+	// AIN8 -> (PE5)  LEFT IR SENSOR 
+	volatile unsigned long delay;
+	SYSCTL_RCGCADC_R     |=  0x00000001                   ; // 1) activate ADC0
+	SYSCTL_RCGCGPIO_R    |=  SYSCTL_RCGCGPIO_R4           ; // 1) activate clock for Port E
+	//WaitForPorts(0x10)                                    ; // small delay for GPIO
+	GPIO_PORTE_DIR_R     &= ~0x32                         ; // 3) make PE1, PE4, and PE5 input
+	GPIO_PORTE_AFSEL_R   |=  0x32                         ; // 4) enable alternate function on PE1, PE4, and PE5
+	GPIO_PORTE_DEN_R     &= ~0x32                         ; // 5) disable digital I/O on PE1, PE4, and PE5
+	GPIO_PORTE_PCTL_R     =  GPIO_PORTE_PCTL_R&0xFF00FF0F ;
+	GPIO_PORTE_AMSEL_R   |=  0x32                         ; // 6) enable analog functionality on PE1, PE4, and PE5
+	ADC0_PC_R            &= ~0xF                          ; // 8) clear max sample rate field
+	ADC0_PC_R            |=  0x1                          ; //    configure for 125K samples/sec
+	ADC0_SSPRI_R          =  0x3210                       ; // 9) Sequencer 3 is lowest priority
+	ADC0_ACTSS_R         &= ~0x0004                       ; // 10) disable sample sequencer 2
+	ADC0_EMUX_R          &= ~0x0F00                       ; // 11) seq2 is software trigger
+	ADC0_SSMUX2_R         =  0x0892                       ; // 12) set channels for SS2
+	ADC0_SSCTL2_R         =  0x0600                       ; // 13) no D0 END0 IE0 TS0 D1 END1 IE1 TS1 D2 TS2, yes EN    D2 IE2
+	ADC0_IM_R            &= ~0x0004                       ; // 14) disable SS2 interrupts
+	ADC0_ACTSS_R         |=  0x0004                       ; // 15) enable sample sequencer 2
 }
 
 void ADC_In(unsigned long *ain2, unsigned long *ain9, unsigned long *ain8){   // ain2 (PE1) [0-4095]
-    // ain9 (PE4) [0-4095]
-    // ain8 (PE5) [0-4095]
-    ADC0_PSSI_R = 0x0004;            // 1) initiate SS2
-    while((ADC0_RIS_R&0x04)==0){};   // 2) wait for conversion done
-    *ain2 = ADC0_SSFIFO2_R&0xFFF;    // 3A) read first result
-    *ain9 = ADC0_SSFIFO2_R&0xFFF;    // 3B) read second result
-    *ain8 = ADC0_SSFIFO2_R&0xFFF;    // 3C) read third result
-    ADC0_ISC_R = 0x0004;             // 4) acknowledge completion
+	// ain9 (PE4) [0-4095]
+	// ain8 (PE5) [0-4095]
+	ADC0_PSSI_R = 0x0004;            // 1) initiate SS2
+	while((ADC0_RIS_R&0x04)==0){};   // 2) wait for conversion done
+	*ain2 = ADC0_SSFIFO2_R&0xFFF;    // 3A) read first result
+	*ain9 = ADC0_SSFIFO2_R&0xFFF;    // 3B) read second result
+	*ain8 = ADC0_SSFIFO2_R&0xFFF;    // 3C) read third result
+	ADC0_ISC_R = 0x0004;             // 4) acknowledge completion
 }
 
 unsigned long median(unsigned long u1, unsigned long u2, unsigned long u3){
-    // Median function
-    unsigned long result;
-    if(u1>u2)
-        if(u2>u3)     result=u2; // u1>u2, u2>u3       u1>u2>u3
-        else
-            if(u1>u3) result=u3; // u1>u2, u3>u2,u1>u3 u1>u3>u2
-            else      result=u1; // u1>u2, u3>u2,u3>u1 u3>u1>u2
-    else
-        if(u3>u2)     result=u2; // u2>u1, u3>u2       u3>u2>u1
-        else
-            if(u1>u3) result=u1; // u2>u1, u2>u3,u1>u3 u2>u1>u3
-            else      result=u3; // u2>u1, u2>u3,u3>u1 u2>u3>u1
-    return(result);
+	// Median function
+	unsigned long result;
+	if(u1>u2)
+		if(u2>u3)     result=u2; // u1>u2, u2>u3       u1>u2>u3
+		else
+			if(u1>u3) result=u3; // u1>u2, u3>u2,u1>u3 u1>u3>u2
+			else      result=u1; // u1>u2, u3>u2,u3>u1 u3>u1>u2
+	else
+		if(u3>u2)     result=u2; // u2>u1, u3>u2       u3>u2>u1
+		else
+			if(u1>u3) result=u1; // u2>u1, u2>u3,u1>u3 u2>u1>u3
+			else      result=u3; // u2>u1, u2>u3,u3>u1 u2>u3>u1
+	return(result);
 }
 
 void ReadADCMedianFilter(volatile unsigned long *ain2, volatile unsigned long *ain9, volatile unsigned long *ain8){
-    // This function samples AIN2 (PE1), AIN9 (PE4), AIN8 (PE5) and
-    // returns the results in the corresponding variables.  Some
-    // kind of filtering is required because the IR distance sensors
-    // output occasional erroneous spikes.  This is a median filter:
-    // y(n) = median(x(n), x(n-1), x(n-2))
-    // Assumes: ADC initialized by previously calling ADC_Init()
-    //                   x(n-2)        x(n-1)
-    static unsigned long ain2oldest=0, ain2middle=0;
-    static unsigned long ain9oldest=0, ain9middle=0;
-    static unsigned long ain8oldest=0, ain8middle=0;
-    // save some memory; these do not need to be 'static'
-    //            x(n)
-    unsigned long ain2newest;
-    unsigned long ain9newest;
-    unsigned long ain8newest;
-    ADC_In(&ain2newest, &ain9newest, &ain8newest); // sample AIN2(PE1), AIN9 (PE4), AIN8 (PE5)
-    *ain2 = median(ain2newest, ain2middle, ain2oldest);
-    *ain9 = median(ain9newest, ain9middle, ain9oldest);
-    *ain8 = median(ain8newest, ain8middle, ain8oldest);
-    ain2oldest = ain2middle; ain9oldest = ain9middle; ain8oldest = ain8middle;
-    ain2middle = ain2newest; ain9middle = ain9newest; ain8middle = ain8newest;
+	// This function samples AIN2 (PE1), AIN9 (PE4), AIN8 (PE5) and
+	// returns the results in the corresponding variables.  Some
+	// kind of filtering is required because the IR distance sensors
+	// output occasional erroneous spikes.  This is a median filter:
+	// y(n) = median(x(n), x(n-1), x(n-2))
+	// Assumes: ADC initialized by previously calling ADC_Init()
+	//                   x(n-2)        x(n-1)
+	static unsigned long ain2oldest=0, ain2middle=0;
+	static unsigned long ain9oldest=0, ain9middle=0;
+	static unsigned long ain8oldest=0, ain8middle=0;
+	// save some memory; these do not need to be 'static'
+	//            x(n)
+	unsigned long ain2newest;
+	unsigned long ain9newest;
+	unsigned long ain8newest;
+	ADC_In(&ain2newest, &ain9newest, &ain8newest); // sample AIN2(PE1), AIN9 (PE4), AIN8 (PE5)
+	*ain2 = median(ain2newest, ain2middle, ain2oldest);
+	*ain9 = median(ain9newest, ain9middle, ain9oldest);
+	*ain8 = median(ain8newest, ain8middle, ain8oldest);
+	ain2oldest = ain2middle; ain9oldest = ain9middle; ain8oldest = ain8middle;
+	ain2middle = ain2newest; ain9middle = ain9newest; ain8middle = ain8newest;
 }
 
 /***********************************************************************************/ 
@@ -200,30 +200,30 @@ void GPIOPortF_Handler(void){
 			
 	 }
 	 if(GPIO_PORTF_DATA_R & 0x10){//right button
-		 
+		
 	 }
 	 
 	 GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
 } 
 
 void Timer1A_Handler(void){ // 10Hz - check for button input
-    adc_check_value_flag = 1;     // Lets main check the adc values
-    if( GPIO_PORTB_DATA_R & 0x02){ // Button has not been pressed
-      GPIO_PORTF_DATA_R  &= ~0x08;// Turn Green status light off
-      stop_flag = 1;	// Set fire flag
-    }
-    else{
-        if(LASER_ON){// Only send fire if laser is on
-          GPIO_PORTF_DATA_R  &= ~0x08;// Turn Green status light off
-          fire_flag = 1;  // Set fire flag
-        }
-        else{
-          stop_flag = 1;
-        }
-        GPIO_PORTF_DATA_R  |= 0x08;// Green status light
-    }
+	adc_check_value_flag = 1;     // Lets main check the adc values
+	if( GPIO_PORTB_DATA_R & 0x02){ // Button has not been pressed
+	  GPIO_PORTF_DATA_R  &= ~0x08;// Turn Green status light off
+	  stop_flag = 1;	// Set fire flag
+	}
+	else{
+		if(LASER_ON){// Only send fire if laser is on
+		  GPIO_PORTF_DATA_R  &= ~0x08;// Turn Green status light off
+		  fire_flag = 1;  // Set fire flag
+		}
+		else{
+		  stop_flag = 1;
+		}
+		GPIO_PORTF_DATA_R  |= 0x08;// Green status light
+	}
 
-    TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge TIMER1A timeout
+	TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge TIMER1A timeout
 }
 
  /***********************************************************************************/
@@ -234,7 +234,7 @@ int main(void){
 	PortF_Init();
 	ADC_Init();
 	BT_Init();  // Bluetooth initialization
-    Timer1_Init();
+	Timer1_Init();
 
 	EnableInterrupts();
 	
@@ -256,14 +256,21 @@ int main(void){
 			if(flex_input > 3100){
 				GPIO_PORTF_DATA_R |= 0x04;
 				GPIO_PORTB_DATA_R |= 0x01; // Turn laser on
-				LASER_ON = 0x01;
+				// Update Laser Status, only on rising edges
+				if(LASER_ON == 0x00){
+					LASER_ON = 0x01;
+					UART2_OutChar('h'); // Send "Laser On"
+				}
 			}
 			else{
 				GPIO_PORTF_DATA_R &= 0xFB;
 				GPIO_PORTB_DATA_R &= 0xFE; // Turn laser off
-				// Laser status flag
-				LASER_ON = 0x00;
 				fire_flag = 0;	// turn fire flag off for good measure
+				// Update Laser Status, only on falling edges
+				if(LASER_ON == 0x01){
+					LASER_ON = 0x00;
+					UART2_OutChar('l'); // Send "Laser On"
+				}
 			}
 
 			// Handle fire event
