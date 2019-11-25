@@ -425,6 +425,16 @@
               <FileType>1</FileType>
               <FilePath>.\UARTTestMain.c</FilePath>
             </File>
+            <File>
+              <FileName>bluetooth.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\bluetooth.c</FilePath>
+            </File>
+            <File>
+              <FileName>bluetooth.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\bluetooth.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

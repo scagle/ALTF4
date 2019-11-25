@@ -173,7 +173,7 @@ void SysTick_Init(){
 	 // 1 / 16,000,000 * val = sec
 	 // output: 
 	 NVIC_ST_CTRL_R = 0; //disable systick
-	 NVIC_ST_RELOAD_R = 1600; // 0.5 second interval
+	 NVIC_ST_RELOAD_R = 8000; // 0.5 second interval
 	 NVIC_ST_CURRENT_R = 0; //reset current couter value
 	 NVIC_ST_CTRL_R |= 0x00000007;
  }
@@ -199,22 +199,31 @@ void SysTick_Handler(void){
 		GPIO_PORTC_DATA_R &= 0xBF;
 	}
 }
- 
+// Functions to change step direction
+void step_left(void) { GPIO_PORTC_DATA_R |=  LEFT; }
+void step_right(void){ GPIO_PORTC_DATA_R &= RIGHT; }
+
 void GPIOPortF_Handler(void){
 	if(GPIO_PORTF_DATA_R & 0x01){//left button
-		step_en = 0x01;
-		STEP_COUNT = 100;
+		LaserOn();
+		//step_right();
+		//step_en = 0x01;
+		//STEP_COUNT = 2000;
 		GPIO_PORTF_DATA_R = GPIO_PORTF_DATA_R ^ 0x08;
 	 }
 	if(GPIO_PORTF_DATA_R & 0x10){//right button
 		// Do nothing for now
+		LaserOff();
+		//		step_left();
+		//step_en = 0x01;
+		//STEP_COUNT = 2000;
+		GPIO_PORTF_DATA_R = GPIO_PORTF_DATA_R ^ 0x08;
 	}
 	GPIO_PORTF_ICR_R = 0x11; //acknowledge interrupt
 }
 /***********************************************************************************/
 // Functions to change step direction
-void step_left(void) { GPIO_PORTC_DATA_R |=  LEFT; }
-void step_right(void){ GPIO_PORTC_DATA_R &= RIGHT; }
+
 // Functions to change step resolution
 void step_full(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | FULL;			}
 void step_half(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | HALF;			}
@@ -319,12 +328,13 @@ void GetBluetooth(){
 
 // UART reading and output
 void GetUART(){
-	// Change color to red before receiving 4 characters
-	//GPIO_PORTF_DATA_R  = 0x02;
-	
 	// Get first "strt" string and check if it correct
 	char temp_check = 0x00; 
 	int  temp = 9000;
+
+	// Change color to yellow before receiving 4 characters
+	GPIO_PORTF_DATA_R  = 0x0A;
+
 	UART_InString(STRT, 5);
 
 	temp_check = strcmp(STRT, "strt");
@@ -349,7 +359,7 @@ void GetUART(){
 		yGreen = UART_InUDec();
 		xRed   = UART_InUDec();
 		yRed   = UART_InUDec();	
-		//GPIO_PORTF_DATA_R |= 0x08;
+		GPIO_PORTF_DATA_R |= 0x08; // Green = 4 valid coordinates
 	}
 	// None
 	else{ LaserOff(); }
@@ -358,10 +368,10 @@ void GetUART(){
 	UART_InString(STOP, 5);
 	
 	if(strcmp(STOP, "stop") != 0){
-		//GPIO_PORTF_DATA_R |= 0x04;
+		GPIO_PORTF_DATA_R |= 0x04;// Blue = stop string not received
 		return;
 	}
-	//GPIO_PORTF_DATA_R = 0x0E; //white if data good
+	GPIO_PORTF_DATA_R = 0x0E; // White = valid data packet
 
 	// Change color to sky blue after receiving 4 characters
 	//GPIO_PORTF_DATA_R  = 0x0C;
@@ -378,8 +388,8 @@ int main(void){
 	BT_Init();		// Bluetooth UART from the glove
 	
 	UpdateServo(servo_basic);
-	//step_thirtysecond();
-	step_full();
+	step_thirtysecond();
+	//step_full();
 
 	while(1){
 		GetBluetooth();		// Handle Glove UART input
