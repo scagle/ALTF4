@@ -336,7 +336,7 @@ void GetUART(){
 	GPIO_PORTF_DATA_R  = 0x0A;
 
 	UART_InString(STRT, 5);
-
+	OutCRLF();
 	temp_check = strcmp(STRT, "strt");
 	if(temp_check != 0){
 		GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
@@ -346,8 +346,11 @@ void GetUART(){
 		return;
 	}
 	
+	GPIO_PORTF_DATA_R  = 0x00;
+
 	// Read either none or number
 	UART_InString(test, 5);
+	OutCRLF();
 	temp_check = strcmp(test, "none");
 	// Did not get a none
 	if(strcmp(test, "none") != 0){
@@ -357,15 +360,24 @@ void GetUART(){
 
 		// Get 3 remaining numbers through UART			
 		yGreen = UART_InUDec();
+		OutCRLF();
+		GPIO_PORTF_DATA_R  = 0x0C;
+
 		xRed   = UART_InUDec();
-		yRed   = UART_InUDec();	
-		GPIO_PORTF_DATA_R |= 0x08; // Green = 4 valid coordinates
+		OutCRLF();
+		GPIO_PORTF_DATA_R  = 0x06;
+
+		yRed   = UART_InUDec();
+		OutCRLF();		
+		GPIO_PORTF_DATA_R = 0x08; // Green = 4 valid coordinates
 	}
 	// None
 	else{ LaserOff(); }
-	
+	GPIO_PORTF_DATA_R  = 0x0C;
+
 	// Get stop
 	UART_InString(STOP, 5);
+	OutCRLF();
 	
 	if(strcmp(STOP, "stop") != 0){
 		GPIO_PORTF_DATA_R |= 0x04;// Blue = stop string not received
@@ -373,8 +385,19 @@ void GetUART(){
 	}
 	GPIO_PORTF_DATA_R = 0x0E; // White = valid data packet
 
+		UART_OutString("xGreen: ");
+		UART_OutUDec(xGreen);
+		OutCRLF();
+		UART_OutString("yGreen: ");
+		UART_OutUDec(yGreen);
+		OutCRLF();
+		UART_OutString("xRed: ");
+		UART_OutUDec(xRed);
+		OutCRLF();
+		UART_OutString("yRed: ");
+		UART_OutUDec(yRed);
+		OutCRLF();
 	// Change color to sky blue after receiving 4 characters
-	//GPIO_PORTF_DATA_R  = 0x0C;
 }
 
 //debug code
