@@ -399,7 +399,22 @@ void GetUART(){
 		OutCRLF();
 	// Change color to sky blue after receiving 4 characters
 }
-
+void GetData(void){
+	// Red before receiving data
+	GPIO_PORTF_DATA_R  = 0x02;
+	
+	UART_InString(STRT, 5);
+	
+	// Blue after receiving data
+	GPIO_PORTF_DATA_R  = 0x04;
+	
+	UART_OutString("Data: ");
+	UART_OutString(STRT);
+	OutCRLF();
+	
+	// Green after sending data back
+	GPIO_PORTF_DATA_R  = 0x08;
+}
 //debug code
 int main(void){
 	PortA_Init();
@@ -415,9 +430,9 @@ int main(void){
 	//step_full();
 
 	while(1){
-		GetBluetooth();		// Handle Glove UART input
-		GetUART();			// Handle Computer UART input
-
+		//GetBluetooth();		// Handle Glove UART input
+		//GetUART();			// Handle Computer UART input
+		GetData(); // Echo Data
 		// Update Turret Servo / Stepper values
 		// (Only updates if glove's green laser is on, and if we got new data)
 		if(GreenLaserOnFlag && NewDataFlag){
