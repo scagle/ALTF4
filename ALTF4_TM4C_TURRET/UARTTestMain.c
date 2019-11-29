@@ -331,25 +331,26 @@ void GetUART(){
 	// Get first "strt" string and check if it correct
 	char temp_check = 0x00; 
 	int  temp = 9000;
+	char state = 0;
 
 	// Change color to yellow before receiving 4 characters
 	GPIO_PORTF_DATA_R  = 0x0A;
 
-	UART_InString(STRT, 5);
+	state =UART_InString(STRT, 5);
 	OutCRLF();
 	temp_check = strcmp(STRT, "strt");
 	if(temp_check != 0){
-		GPIO_PORTF_DATA_R |= 0x02; // Red == 1st input not start
-		temp = UART_InUDec();
-		servo_basic = temp;
-		UpdateServo(temp);
+		GPIO_PORTF_DATA_R = 0x02; // Red == 1st input not start
+		//temp = UART_InUDec();
+		//servo_basic = temp;
+		//UpdateServo(temp);
 		return;
 	}
 	
 	GPIO_PORTF_DATA_R  = 0x00;
 
 	// Read either none or number
-	UART_InString(test, 5);
+	state = UART_InString(test, 5);
 	OutCRLF();
 	temp_check = strcmp(test, "none");
 	// Did not get a none
@@ -376,7 +377,7 @@ void GetUART(){
 	GPIO_PORTF_DATA_R  = 0x0C;
 
 	// Get stop
-	UART_InString(STOP, 5);
+	state = UART_InString(STOP, 5);
 	OutCRLF();
 	
 	if(strcmp(STOP, "stop") != 0){
@@ -431,8 +432,8 @@ int main(void){
 
 	while(1){
 		//GetBluetooth();		// Handle Glove UART input
-		//GetUART();			// Handle Computer UART input
-		GetData(); // Echo Data
+		GetUART();			// Handle Computer UART input
+		//GetData(); // Echo Data
 		// Update Turret Servo / Stepper values
 		// (Only updates if glove's green laser is on, and if we got new data)
 		if(GreenLaserOnFlag && NewDataFlag){

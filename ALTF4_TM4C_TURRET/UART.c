@@ -3,6 +3,7 @@
 
 #include "UART.h"
 #include "tm4c123gh6pm.h"
+#include <stdio.h>
 
 #define UART_FR_TXFF            0x00000020  // UART Transmit FIFO Full
 #define UART_FR_RXFE            0x00000010  // UART Receive FIFO Empty
@@ -41,7 +42,8 @@ void UART_Init(void){
 // Output: ASCII code for key typed
 unsigned char UART_InChar(void){
   while((UART0_FR_R&UART_FR_RXFE) != 0);
-  return((unsigned char)(UART0_DR_R&0xFF));
+  unsigned char character = (unsigned char)(UART0_DR_R&0xFF);
+  return character;
 }
 //------------UART_OutChar------------
 // Output 8-bit to serial port
@@ -175,37 +177,73 @@ void UART_OutUHex(unsigned long number){
   }
 }
 
+////------------UART_InString------------
+//// Accepts ASCII characters from the serial port
+////    and adds them to a string until <enter> is typed
+////    or until max length of the string is reached.
+//// It echoes each character as it is inputted.
+//// If a backspace is inputted, the string is modified
+////    and the backspace is echoed
+//// terminates the string with a null character
+//// uses busy-waiting synchronization on RDRF
+//// Input: pointer to empty buffer, size of buffer
+//// Output: Null terminated string
+//// -- Modified by Agustinus Darmawan + Mingjie Qiu --
+//void UART_InString(char *bufPt, unsigned short max) {
+//  int length=0;
+//  char character;
+//  character = UART_InChar();
+//  while(character != CR){
+//    if(character == BS){
+//      if(length){
+//        bufPt--;
+//        length--;
+//        UART_OutChar(BS);
+//      }
+//    }
+//    else if(length < max){
+//      *bufPt = character;
+//      bufPt++;
+//      length++;
+//      UART_OutChar(character);
+//    }
+//    character = UART_InChar();
+//  }
+//  *bufPt = 0;
+//}
+
 //------------UART_InString------------
-// Accepts ASCII characters from the serial port
-//    and adds them to a string until <enter> is typed
-//    or until max length of the string is reached.
-// It echoes each character as it is inputted.
-// If a backspace is inputted, the string is modified
-//    and the backspace is echoed
-// terminates the string with a null character
-// uses busy-waiting synchronization on RDRF
-// Input: pointer to empty buffer, size of buffer
-// Output: Null terminated string
-// -- Modified by Agustinus Darmawan + Mingjie Qiu --
-void UART_InString(char *bufPt, unsigned short max) {
-int length=0;
-char character;
-  character = UART_InChar();
-  while(character != CR){
-    if(character == BS){
-      if(length){
-        bufPt--;
-        length--;
-        UART_OutChar(BS);
-      }
-    }
-    else if(length < max){
-      *bufPt = character;
-      bufPt++;
-      length++;
-      UART_OutChar(character);
-    }
+// Input: character buffer, character max length
+// Output: validity flag 
+// 	0 = passed
+// 	1 = failed
+// 	2 = can't fit null character at end
+char UART_InString(char *bufPt, unsigned short max) {
+    int length=0;
+    char character;
     character = UART_InChar();
-  }
-  *bufPt = 0;
+    while(character != CR){
+        if(character == LF){ // Ignore line feeds 
+            continue;
+        }
+        if(length < max){
+            *bufPt = character;
+            bufPt++;
+            length++;
+        }
+        else{ // exceeded max size
+            return 1;
+        }
+        character = UART_InChar();
+    }
+    if(length < max) // Check if we can add NULL character
+    {
+        *bufPt = NULL;
+        length++;
+    }
+    else{   // Can't fit NULL character
+        return 2;
+    }
+    *bufPt = 0;
+    return 0;
 }

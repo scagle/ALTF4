@@ -96,15 +96,9 @@ unsigned long UART_InUHex(void);
 void UART_OutUHex(unsigned long number);
 
 //------------UART_InString------------
-// Accepts ASCII characters from the serial port
-//    and adds them to a string until <enter> is typed
-//    or until max length of the string is reached.
-// It echoes each character as it is inputted.
-// If a backspace is inputted, the string is modified
-//    and the backspace is echoed
-// terminates the string with a null character
-// uses busy-waiting synchronization on RDRF
-// Input: pointer to empty buffer, size of buffer
-// Output: Null terminated string
-// -- Modified by Agustinus Darmawan + Mingjie Qiu --
-void UART_InString(char *bufPt, unsigned short max);
+// Input: character buffer, character max length
+// Output: validity flag 
+// 	0 = passed
+// 	1 = failed
+// 	2 = can't fit null character at end
+char UART_InString(char *bufPt, unsigned short max);
