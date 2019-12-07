@@ -222,7 +222,7 @@ char UART_InString(char *bufPt, unsigned short max) {
     int length=0;
     char character;
     character = UART_InChar();
-    while(character != CR){
+    while(character != CR ){
         if(character == LF){ // Ignore line feeds 
             continue;
         }

@@ -27,7 +27,10 @@
 #include "tm4c123gh6pm.h"
 #include "UART.h"
 #include "stdlib.h"
+#include "stdio.h"
+#include "string.h"
 #include "bluetooth.h"
+#include "pid.h"
 /***********************************************************************************/
 #define FULL 				 0x00
 #define HALF 				 0x80
@@ -37,27 +40,66 @@
 #define THIRTYSECOND 0xA0
 #define LEFT 				 0x80
 #define RIGHT 			 0x7F
-#define SERVO_MIN    9000
-#define SERVO_MAX    15000
+#define SERVO_MIN    22000
+#define SERVO_MAX    32000
+#define SERVO_RANGE  (SERVO_MAX - SERVO_MIN)
+#define SERVO_MIDDLE (SERVO_MIN + SERVO_RANGE / 2)
+
+unsigned char step_sizes[] = { THIRTYSECOND, SIXTEENTH, EIGHTH, QUARTER, HALF, FULL };
+
 /***********************************************************************************/
 int en = 419;
 
 // UART coordinates
-unsigned int xGreen, yGreen, xRed, yRed;
+unsigned int xGreen = 320; 	// Center X
+unsigned int yGreen = 240;	// Center Y
+unsigned int xRed = 320;		// Center X
+unsigned int yRed = 240;		// Center Y
+
+// PID Variables
+unsigned int *servo_command = &yGreen;
+unsigned int *servo_position = &yRed;
+unsigned int *stepper_command = &xGreen;
+unsigned int *stepper_position = &xRed; 	// TODO: Maybe calibrate the X on camera, and use that instead
+int servo_drive = 0;
+int stepper_drive = 0;
+PID servo_pid = { 
+	.K = 5,
+	.time_constant = 1,
+	.error = 0,
+	.reset_register = 0,
+	.differential_error = 0,
+	.dt = 0
+};
+
+PID stepper_pid = { 
+	.K = 5,
+	.time_constant = 1,
+	.error = 0,              // Initializes to zero
+	.reset_register = 0,     // Initializes to zero
+	.differential_error = 0, // 
+	.dt = 0
+};
+	
 
 // Stepper Motor variables
-unsigned int STEP_COUNT = 0;
-char step_en = 0x01;
+unsigned char step_size = THIRTYSECOND;	
+unsigned char STEP_COUNT = 0;	
+char step_en = 0x01; 		// Flag set when stepper is enabled
 
-// UART variables
+// UART Capture Data variables
 char STRT[5];
 char STOP[5];
 char test[5];
 char NewDataFlag = 0;		// Flag set when new data is received over UART0
+char state = 0;
+int delimit_index = 0;
 
 // Servo basic feedback val
-unsigned int servo_basic = 12000;
-double Servo_pwm = 8000;
+unsigned int servo_pwm = SERVO_MIDDLE;
+unsigned int servo_basic = SERVO_MIDDLE;
+unsigned int range = SERVO_RANGE;
+unsigned int middle = SERVO_MIDDLE;
 
 // Bluetooth flags
 char FiringFlag = 0;		// Flag set when glove is sending fire signal 
@@ -90,7 +132,7 @@ void PortA_Init(){ unsigned long delay;
 	PWM1_1_CTL_R 			 = 0x00;					//disable PWM for initializations
 	PWM1_1_GENB_R     |= 0x00000C08; 		//drive PWM b high, invert pwm b
 	PWM1_1_LOAD_R 		 = 320000-1; 			  //needed for 20ms period
-	PWM1_1_CMPB_R 		 = 8000; 				//0.5ms duty cycle
+	PWM1_1_CMPB_R 		 = servo_pwm; 				//0.5ms duty cycle
 	PWM1_1_CTL_R 			&=~0x00000010; 	//set to countdown mode
 	PWM1_1_CTL_R 			|= 0x00000001; 		//enable generator
 	
@@ -185,13 +227,13 @@ void SysTick_Handler(void){
 		if( GPIO_PORTC_DATA_R & 0x40){// high
 			//set low and decrease counter
 			GPIO_PORTC_DATA_R &= 0xBF;
-			GPIO_PORTF_DATA_R &= ~0x04;
+			//GPIO_PORTF_DATA_R &= ~0x04;
 			STEP_COUNT = STEP_COUNT - 1;
 		}
 		else{// low
 			// set high
 			GPIO_PORTC_DATA_R |= 0x40; 
-			GPIO_PORTF_DATA_R |= 0x04;
+			//GPIO_PORTF_DATA_R |= 0x04;
 		}
 	}
 	// Turn off output if count is not high
@@ -223,7 +265,6 @@ void GPIOPortF_Handler(void){
 }
 /***********************************************************************************/
 // Functions to change step direction
-
 // Functions to change step resolution
 void step_full(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | FULL;			}
 void step_half(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | HALF;			}
@@ -256,8 +297,7 @@ void StepOut(){
 	// xRed is left of xGreen
 	if( diff < 0 ){ step_right();}
 	// xRed is right of xGreen
-	else{ 					step_left(); }
-	
+	else{ step_left(); }
 }
 
 /***********************************************************************************/
@@ -295,6 +335,7 @@ void ServoFeedback(){
 	// Update servo position
 	UpdateServo(servo_basic);
 }
+
 /***********************************************************************************/
 void LaserOn() { GPIO_PORTB_DATA_R |=  0x10; NewDataFlag = 1; }
 void LaserOff(){ GPIO_PORTB_DATA_R &= ~0x10; NewDataFlag = 0; }
@@ -326,123 +367,197 @@ void GetBluetooth(){
 	}
 }
 
+int findDelimiterIndex(char *string, int strlen, unsigned char delimit){
+	int index;
+	for (index = 0; index < strlen; index++){
+		if (string[index] == delimit){
+			return index;
+		}
+	}
+	return -1;
+}
 // UART reading and output
 void GetUART(){
 	// Get first "strt" string and check if it correct
-	char temp_check = 0x00; 
 	int  temp = 9000;
-	char state = 0;
+	state = 0;
 
 	// Change color to yellow before receiving 4 characters
-	GPIO_PORTF_DATA_R  = 0x0A;
+	// GPIO_PORTF_DATA_R  = 0x0A;
 
-	state =UART_InString(STRT, 5);
-	OutCRLF();
-	temp_check = strcmp(STRT, "strt");
-	if(temp_check != 0){
-		GPIO_PORTF_DATA_R = 0x02; // Red == 1st input not start
-		//temp = UART_InUDec();
-		//servo_basic = temp;
-		//UpdateServo(temp);
-		return;
+	state = UART_InString( STRT, 5 );
+
+    if( strcmp( STRT, ""     ) == 0 ){
+        return;
+    }
+
+	if( strcmp( STRT, "none" ) == 0 ){
+        UART_OutString("Error: '");
+        UART_OutString(STRT);
+        UART_OutString("'\r\n'");
 	}
-	
-	GPIO_PORTF_DATA_R  = 0x00;
 
-	// Read either none or number
-	state = UART_InString(test, 5);
-	OutCRLF();
-	temp_check = strcmp(test, "none");
+	delimit_index = findDelimiterIndex( STRT, 5, ':' );
+	if ( delimit_index != -1 ){
+		if ( delimit_index != 2 ){
+			UART_OutString("Error: '");
+			UART_OutString(STRT);
+			UART_OutString("'\r\n'");
+		}
+		else{
+			UART_OutString("Got: '");
+			UART_OutString(STRT);
+			UART_OutString("'\r\n");
+
+			char header[3] = "";
+			char value_string[5] = "";
+			int value = 0;
+		  strncpy( header, STRT, delimit_index);
+		  header[2] = '\0';
+		  strncpy( value_string, STRT+delimit_index+1, 5);
+		  value_string[4] = '\0';
+
+		  unsigned int place = 1; // one's place, ten's place, hundred's place, etc
+		  int i = 0;
+		  for ( i = strlen(value_string) - 1; i >= 0; i-- ){
+		  	if ( value_string[i] >= 0x30 && value_string[i] <= 0x39 )
+				{
+		  		value += ( value_string[i] - 0x30 ) * place;
+		  		place *= 10;
+				}
+			}
+
+		  //int sum = sscanf(value_string, "%d", &value);
+			switch( header[0] )
+			{
+				case 'g':
+					if( header[1] == 'x' )
+						xGreen = value;
+					if( header[1] == 'y' )
+						yGreen = value;
+					break;
+				case 'r':
+					if( header[1] == 'x' )
+						xRed = value;
+					if( header[1] == 'y' )
+						yRed = value;
+					break;
+			}
+		}
+	}
+
+
 	// Did not get a none
-	if(strcmp(test, "none") != 0){
-		LaserOn();
-		// Convert string to int
-		xGreen = atoi(test);
+	//if(strcmp(test, "none") != 0){
+	//	LaserOn();
+	//	// Convert string to int
+	//	xGreen = atoi(test);
 
-		// Get 3 remaining numbers through UART			
-		yGreen = UART_InUDec();
-		OutCRLF();
-		GPIO_PORTF_DATA_R  = 0x0C;
+	//	// Get 3 remaining numbers through UART			
+	//	yGreen = UART_InUDec();
+	//	OutCRLF();
+	//	//GPIO_PORTF_DATA_R  = 0x0C;
 
-		xRed   = UART_InUDec();
-		OutCRLF();
-		GPIO_PORTF_DATA_R  = 0x06;
+	//	xRed   = UART_InUDec();
+	//	OutCRLF();
+	//	//GPIO_PORTF_DATA_R  = 0x06;
 
-		yRed   = UART_InUDec();
-		OutCRLF();		
-		GPIO_PORTF_DATA_R = 0x08; // Green = 4 valid coordinates
-	}
-	// None
-	else{ LaserOff(); }
-	GPIO_PORTF_DATA_R  = 0x0C;
-
-	// Get stop
-	state = UART_InString(STOP, 5);
-	OutCRLF();
+	//	yRed   = UART_InUDec();
+	//	OutCRLF();		
+	//	//GPIO_PORTF_DATA_R = 0x08; // Green = 4 valid coordinates
+	//}
+	//// None
+	//else{ LaserOff(); }
+	//GPIO_PORTF_DATA_R  = 0x0C;
 	
-	if(strcmp(STOP, "stop") != 0){
-		GPIO_PORTF_DATA_R |= 0x04;// Blue = stop string not received
-		return;
-	}
-	GPIO_PORTF_DATA_R = 0x0E; // White = valid data packet
+	//GPIO_PORTF_DATA_R = 0x0E; // White = valid data packet
 
-		UART_OutString("xGreen: ");
-		UART_OutUDec(xGreen);
-		OutCRLF();
-		UART_OutString("yGreen: ");
-		UART_OutUDec(yGreen);
-		OutCRLF();
-		UART_OutString("xRed: ");
-		UART_OutUDec(xRed);
-		OutCRLF();
-		UART_OutString("yRed: ");
-		UART_OutUDec(yRed);
-		OutCRLF();
 	// Change color to sky blue after receiving 4 characters
 }
 void GetData(void){
 	// Red before receiving data
-	GPIO_PORTF_DATA_R  = 0x02;
+	//GPIO_PORTF_DATA_R  = 0x02;
 	
 	UART_InString(STRT, 5);
 	
 	// Blue after receiving data
-	GPIO_PORTF_DATA_R  = 0x04;
+	//GPIO_PORTF_DATA_R  = 0x04;
 	
 	UART_OutString("Data: ");
 	UART_OutString(STRT);
 	OutCRLF();
 	
 	// Green after sending data back
-	GPIO_PORTF_DATA_R  = 0x08;
+	//GPIO_PORTF_DATA_R  = 0x08;
 }
+
+void OutputServo( PID *pid, int drive ){
+	// Saturation limit clamping 
+	int before_clamp_drive = drive;
+	if( drive > ( SERVO_RANGE / 2) )
+		drive = ( SERVO_RANGE / 2 );
+	else if( drive < -( SERVO_RANGE / 2) )
+		drive = -( SERVO_RANGE / 2 );
+
+	// Prevent Integral Wind-Up after Clamping
+	if( drive != before_clamp_drive ){ 	// If clamping has occurred
+		// Check if Integral is causing wind up
+		if( ( pid->error > 0 ) && ( drive > 0 ) ) // If both positive 
+			pid->reset_register = ( SERVO_RANGE / 2 );
+		if( ( pid->error < 0 ) && ( drive < 0 ) ) // if both negative
+			pid->reset_register = -( SERVO_RANGE / 2 );
+	}
+	// Actuator Command
+	servo_pwm = SERVO_MIDDLE + drive;
+
+	// Actuator Output clamping
+	if( servo_pwm < SERVO_MIN )
+		servo_pwm = SERVO_MIN;
+	else if( servo_pwm > SERVO_MAX )
+		servo_pwm = SERVO_MAX;
+
+    UpdateServo(servo_pwm); // Set PWM1_1 to servo_pwm
+}
+
+void OutputStepper( PID *pid, int drive ){
+	//UART_OutUDec((unsigned int)drive);
+}
+
 //debug code
 int main(void){
 	PortA_Init();
 	PortB_Init();
 	PortC_Init();
-	PortF_Init();
+	//PortF_Init();
 	SysTick_Init();
 	UART_Init();
 	BT_Init();		// Bluetooth UART from the glove
-	
-	UpdateServo(servo_basic);
-	step_thirtysecond();
+
+	UpdateServo(servo_pwm); // Set PWM1_1 to servo_pwm
+	//UpdateServo(servo_basic);
+	//step_thirtysecond();
 	//step_full();
 
 	while(1){
-		//GetBluetooth();		// Handle Glove UART input
-		GetUART();			// Handle Computer UART input
-		//GetData(); // Echo Data
-		// Update Turret Servo / Stepper values
-		// (Only updates if glove's green laser is on, and if we got new data)
+		// Get Data
+		//GetBluetooth();  // Handle Glove UART input
+		GetUART();       // Handle Computer UART input
+		//GetData();     // Echo Data
+
+		// Update PIDs
+		servo_pid.error = *servo_command - *servo_position;
+		stepper_pid.error = *stepper_command - *stepper_position;
+		servo_drive   = UpdatePID( &servo_pid,   *servo_position   );
+		stepper_drive = UpdatePID( &stepper_pid, *stepper_position );
+
+		GreenLaserOnFlag = 1; // TODO: Replace this in release
+		// Output to motors
 		if(GreenLaserOnFlag && NewDataFlag){
-			ServoFeedback();
-			StepOut();
+			OutputServo( &servo_pid, servo_drive );
+			//OutputStepper( &stepper_pid, stepper_drive );
 		}
 	}
 }
-
 
 // Color    LED(s) PortF
 // dark     ---    0
