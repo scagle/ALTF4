@@ -64,21 +64,23 @@ unsigned int *stepper_position = &xRed; 	// TODO: Maybe calibrate the X on camer
 int servo_drive = 0;
 int stepper_drive = 0;
 PID servo_pid = { 
-	.K = 5,
-	.time_constant = 1,
-	.error = 0,
-	.reset_register = 0,
-	.differential_error = 0,
-	.dt = 0
+	.Kp = 3,              // Proportional Constant                
+	.Ki = 10,             // Integral Constant
+	.Kd = 1,              // Derivative Constant
+	.time_constant = 8,   // For integral
+	.error = 0,           // Expected output - Actual Output       
+	.reset_register = 0,  // Accumulated error of integral
+	.last_error = 0       // Track previous error for Derivative
 };
 
 PID stepper_pid = { 
-	.K = 5,
-	.time_constant = 1,
-	.error = 0,              // Initializes to zero
-	.reset_register = 0,     // Initializes to zero
-	.differential_error = 0, // 
-	.dt = 0
+	.Kp = 5,              // Proportional Constant                
+	.Ki = 1,              // Integral Constant
+	.Kd = 1,              // Derivative Constant
+	.time_constant = 1,   // For integral
+	.error = 0,           // Expected output - Actual Output       
+	.reset_register = 0,  // Accumulated error of integral
+	.last_error = 0       // Track previous error for Derivative
 };
 	
 
@@ -88,9 +90,7 @@ unsigned char STEP_COUNT = 0;
 char step_en = 0x01; 		// Flag set when stepper is enabled
 
 // UART Capture Data variables
-char STRT[5];
-char STOP[5];
-char test[5];
+char UART_IN[10];
 char NewDataFlag = 0;		// Flag set when new data is received over UART0
 char state = 0;
 int delimit_index = 0;
@@ -114,102 +114,102 @@ void DeactivateGun(void);
 int  strcmp(const char *, const char *);
 /***********************************************************************************/
 void PortA_Init(){ unsigned long delay;
-	SYSCTL_RCGCPWM_R  |= 0x02;					//activate PWM module 1
-	SYSCTL_RCGC2_R 		|= 0x00000001;		//activate Port A
+	SYSCTL_RCGCPWM_R   |= 0x02;        // activate PWM module 1
+	SYSCTL_RCGC2_R     |= 0x00000001;  // activate Port A
 	delay = SYSCTL_RCGC2_R; delay++;
-	GPIO_PORTA_CR_R	  |= 0x80;					//allow changes to PA7
-	GPIO_PORTA_AMSEL_R&= 0xEF;					//disable analog for PA7
-	GPIO_PORTA_PCTL_R &= 0x0FFFFFFF; 		//set PA7 as PWM output
-	GPIO_PORTA_PCTL_R |= 0x50000000;
-	GPIO_PORTA_DIR_R  |= 0x80;					//set PA7 as output
-	GPIO_PORTA_AFSEL_R|= 0x80;					//enable alt func PA7
-	GPIO_PORTA_DEN_R  |= 0x80;					//digital enable PA7
+	GPIO_PORTA_CR_R    |= 0x80;        // allow changes to PA7
+	GPIO_PORTA_AMSEL_R &= 0xEF;        // disable analog for PA7
+	GPIO_PORTA_PCTL_R  &= 0x0FFFFFFF;  // set PA7 as PWM output
+	GPIO_PORTA_PCTL_R  |= 0x50000000;
+	GPIO_PORTA_DIR_R   |= 0x80;        // set PA7 as output
+	GPIO_PORTA_AFSEL_R |= 0x80;        // enable alt func PA7
+	GPIO_PORTA_DEN_R   |= 0x80;        // digital enable PA7
 	
-	SYSCTL_RCGCPWM_R  |= 0x02;					//activate PWM M1
-	SYSCTL_RCGCGPIO_R |= 0x01; 					//clock for Port A
-	SYSCTL_RCC_R 			&=~0x00100000; 		//disable divider
+	SYSCTL_RCGCPWM_R   |= 0x02;        // activate PWM M1
+	SYSCTL_RCGCGPIO_R  |= 0x01;        // clock for Port A
+	SYSCTL_RCC_R       &= ~0x00100000; // disable divider
 	
-	PWM1_1_CTL_R 			 = 0x00;					//disable PWM for initializations
-	PWM1_1_GENB_R     |= 0x00000C08; 		//drive PWM b high, invert pwm b
-	PWM1_1_LOAD_R 		 = 320000-1; 			  //needed for 20ms period
-	PWM1_1_CMPB_R 		 = servo_pwm; 				//0.5ms duty cycle
-	PWM1_1_CTL_R 			&=~0x00000010; 	//set to countdown mode
-	PWM1_1_CTL_R 			|= 0x00000001; 		//enable generator
+	PWM1_1_CTL_R        = 0x00;        // disable PWM for initializations
+	PWM1_1_GENB_R      |= 0x00000C08;  // drive PWM b high, invert pwm b
+	PWM1_1_LOAD_R       = 320000-1;    // needed for 20ms period
+	PWM1_1_CMPB_R       = servo_pwm;   // 0.5ms duty cycle
+	PWM1_1_CTL_R       &= ~0x00000010; // set to countdown mode
+	PWM1_1_CTL_R       |= 0x00000001;  // enable generator
 	
-	PWM1_ENABLE_R 		|= 0x08; //enable output 3 of module 1
+	PWM1_ENABLE_R      |= 0x08;        // enable output 3 of module 1
 	
 }
 
 void PortB_Init(){ unsigned long delay;
-	SYSCTL_RCGC2_R    |= 0x00000002;		//activate Port B
-	delay = SYSCTL_RCGC2_R; delay++;
-	GPIO_PORTB_CR_R   |= 0xF2;				//allow changes PB7,6,5,4,1
-	GPIO_PORTB_AMSEL_R&= 0x0D;				//disable analog for PB7,6,5,4,1
-	GPIO_PORTB_PCTL_R &= 0x0000FF0F;		//set PB7,6,5,4,1 as GPIO
-	GPIO_PORTB_DIR_R  |= 0xF2;				//set PB7,6,5,4,1 as output
-	GPIO_PORTB_AFSEL_R&= 0x0D;				//disable alt func PB7,6,5,4,1
-	GPIO_PORTB_DEN_R  |= 0xF2;				//digital enable PB7,6,5,4,1
+	SYSCTL_RCGC2_R     |= 0x00000002; // activate Port B
+	delay               = SYSCTL_RCGC2_R; delay++;
+	GPIO_PORTB_CR_R    |= 0xF2;       // allow changes PB7,6,5,4,1
+	GPIO_PORTB_AMSEL_R &= 0x0D;       // disable analog for PB7,6,5,4,1
+	GPIO_PORTB_PCTL_R  &= 0x0000FF0F; // set PB7,6,5,4,1 as GPIO
+	GPIO_PORTB_DIR_R   |= 0xF2;       // set PB7,6,5,4,1 as output
+	GPIO_PORTB_AFSEL_R &= 0x0D;       // disable alt func PB7,6,5,4,1
+	GPIO_PORTB_DEN_R   |= 0xF2;       // digital enable PB7,6,5,4,1
 }
 void PortC_Init(){ unsigned long delay;
-	SYSCTL_RCGC2_R 		 |= 0x00000004; //intialize port C
-	delay = SYSCTL_RCGC2_R; delay++;
-	GPIO_PORTC_LOCK_R   = 0x4C4F434B; //unlock Port C
-	GPIO_PORTC_CR_R    |= 0xC0;  		  //allow changes to PC7, 6
-	GPIO_PORTC_AMSEL_R &= 0x3F;       //disable analog for PC7, 6
-	GPIO_PORTC_PCTL_R  &= 0x00FFFFFF; //set PC7, 6 to GPIO
-	GPIO_PORTC_DIR_R   |= 0xC0;				//set PC7, 6 as output
-	GPIO_PORTC_AFSEL_R &= 0x3E;				//disable alt func PC7, 6
-	GPIO_PORTC_DEN_R   |= 0xC0;				//digital enable PC7, 6
-}	
- 
-void PortF_Init(){ unsigned long delay;//for LED debugging
-	SYSCTL_RCGC2_R 		|= 0x00000020;		//activate Port F
-	delay = SYSCTL_RCGC2_R; delay++;
-	GPIO_PORTF_LOCK_R = 0x4C4F434B;			//unlock Port F
-	GPIO_PORTF_CR_R	  |= 0x1F;					//allow changes to PF4,3,2,1,0
-	GPIO_PORTF_AMSEL_R&= 0xE0;					//disable analog for PF4,3,2,1,0
-	GPIO_PORTF_PCTL_R &= 0xFFF00000;		//set PF4,3,2,1,0 as GPIO
-	GPIO_PORTF_PCTL_R |= 0x00000050; // configure PF1 as M1_PWM5
+	SYSCTL_RCGC2_R     |= 0x00000004; // intialize port C
+	delay               = SYSCTL_RCGC2_R; delay++;
+	GPIO_PORTC_LOCK_R   = 0x4C4F434B; // unlock Port C
+	GPIO_PORTC_CR_R    |= 0xC0;       // allow changes to PC7, 6
+	GPIO_PORTC_AMSEL_R &= 0x3F;       // disable analog for PC7, 6
+	GPIO_PORTC_PCTL_R  &= 0x00FFFFFF; // set PC7, 6 to GPIO
+	GPIO_PORTC_DIR_R   |= 0xC0;       // set PC7, 6 as output
+	GPIO_PORTC_AFSEL_R &= 0x3E;       // disable alt func PC7, 6
+	GPIO_PORTC_DEN_R   |= 0xC0;       // digital enable PC7, 6
+}
 
-	GPIO_PORTF_DIR_R  &= 0xEE;					//set PF4,0 as input
-	GPIO_PORTF_DIR_R  |= 0x0E;					//set PF3,2,1 as output
-	GPIO_PORTF_AFSEL_R&= 0xE0;					//disable alt func PF4,3,2,1,0
-	GPIO_PORTF_AFSEL_R |= 0x02;       // enable alt function on PF1
-	GPIO_PORTF_PUR_R  |= 0x13;					//pull up resistors PF4,0
-	GPIO_PORTF_DEN_R  |= 0x1F;					//digital enable PF4,3,2,1,0
+void PortF_Init(){ unsigned long delay; // for LED debugging
+	SYSCTL_RCGC2_R     |= 0x00000020;   // activate Port F
+	delay               = SYSCTL_RCGC2_R; delay++;
+	GPIO_PORTF_LOCK_R   = 0x4C4F434B;   // unlock Port F
+	GPIO_PORTF_CR_R    |= 0x1F;         // allow changes to PF4,3,2,1,0
+	GPIO_PORTF_AMSEL_R &= 0xE0;         // disable analog for PF4,3,2,1,0
+	GPIO_PORTF_PCTL_R  &= 0xFFF00000;   // set PF4,3,2,1,0 as GPIO
+	GPIO_PORTF_PCTL_R  |= 0x00000050;   // configure PF1 as M1_PWM5
+	
+	GPIO_PORTF_DIR_R   &= 0xEE;         // set PF4,0 as input
+	GPIO_PORTF_DIR_R   |= 0x0E;         // set PF3,2,1 as output
+	GPIO_PORTF_AFSEL_R &= 0xE0;         // disable alt func PF4,3,2,1,0
+	GPIO_PORTF_AFSEL_R |= 0x02;         // enable alt function on PF1
+	GPIO_PORTF_PUR_R   |= 0x13;         // pull up resistors PF4,0
+	GPIO_PORTF_DEN_R   |= 0x1F;         // digital enable PF4,3,2,1,0
 	
 	//Interrupt
-	GPIO_PORTF_IS_R		 &= ~0x11; //PF4 edge sensitive
-	GPIO_PORTF_IBE_R   &= ~0x11; //PF4 not both edges
-	GPIO_PORTF_IEV_R   &=  0x11; //PF4 falling edge
-	GPIO_PORTF_ICR_R	 |=  0x11; //PF4 clear flags
-	GPIO_PORTF_IM_R    |=  0x11; //arm interrupt
+	GPIO_PORTF_IS_R  &= ~0x11;          // PF4 edge sensitive
+	GPIO_PORTF_IBE_R &= ~0x11;          // PF4 not both edges
+	GPIO_PORTF_IEV_R &= 0x11;           // PF4 falling edge
+	GPIO_PORTF_ICR_R |= 0x11;           // PF4 clear flags
+	GPIO_PORTF_IM_R  |= 0x11;           // arm interrupt
 	
-	NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|0x00000000; 	// priority 0 interrupt for switches				 
-	NVIC_EN0_R  = 0x40000000;      			// enable interrupt 30 in NVIC
+	NVIC_PRI7_R       = (NVIC_PRI7_R&0xFF00FFFF)|0x00000000; // priority 0 interrupt for switches
+	NVIC_EN0_R        = 0x40000000;     // enable interrupt 30 in NVIC
 	
 	//PWM control - for M1PWM5 on pin PF5
-	SYSCTL_RCGCPWM_R |= 0x02; 		// enable PWM M1
-	SYSCTL_RCGCGPIO_R |= 0x20;    // activate Port F
-																// AFSEL already taken car of
-	SYSCTL_RCC_R |=  0x00100000;  // enable PWM divider	 - bit 20		
+	SYSCTL_RCGCPWM_R  |= 0x02; // enable PWM M1
+	SYSCTL_RCGCGPIO_R |= 0x20; // activate Port F
+	// AFSEL already taken car of
+	SYSCTL_RCC_R |=  0x00100000;  // enable PWM divider  - bit 20
 	SYSCTL_RCC_R &= ~0x000E0000;  // clear divider bits 19-17
 	SYSCTL_RCC_R |=  0x00000000;  // set bits 19-17 to 0, for divider of 2
 	
 	//using M1 and generator 3 for output 5
-	//PWM1_2_LOAD_R = period -1;	// set period duration with period variable
-	PWM1_2_LOAD_R = 800000;			// set period to 40,000
-
+	//PWM1_2_LOAD_R = period -1;    // set period duration with period variable
+	PWM1_2_LOAD_R = 800000;         // set period to 40,000
+	
 	//using M1, generator 3, output 2, so CMPB is used instead of CMPA
 	//PWM1_2_CMPB_R = duty cycle -1;
-	PWM1_2_CMPB_R = 400000;     // set duty cycle to 50%, for initial half brightness
+	PWM1_2_CMPB_R  = 400000;     // set duty cycle to 50%, for initial half brightness
 	
-	PWM1_2_CTL_R |= 0x00000001;   // enable PWM signal, count down mode
-	PWM1_2_GENB_R |= 0x0000080C; 				// llowo n LOAD, high on CMPB down
+	PWM1_2_CTL_R  |= 0x00000001; // enable PWM signal, count down mode
+	PWM1_2_GENB_R |= 0x0000080C; // llowo n LOAD, high on CMPB down
 	
-	PWM1_ENABLE_R |= 0x20; 				// enable M1 PWM5 output
+	PWM1_ENABLE_R |= 0x20;       // enable M1 PWM5 output
 	
- }
+}
 
 void SysTick_Init(){
 	 // 1 / 16,000,000 * val = sec
@@ -266,12 +266,12 @@ void GPIOPortF_Handler(void){
 /***********************************************************************************/
 // Functions to change step direction
 // Functions to change step resolution
-void step_full(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | FULL;			}
-void step_half(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | HALF;			}
-void step_quarter(void) 		{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | QUARTER;		}
-void step_eighth(void)			{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | EIGHTH;		}
-void step_sixteenth(void)		{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | SIXTEENTH;		}
-void step_thirtysecond(void)	{ GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | THIRTYSECOND;	}
+void step_full(void)            { GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | FULL;          }
+void step_half(void)            { GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | HALF;          }
+void step_quarter(void)         { GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | QUARTER;       }
+void step_eighth(void)          { GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | EIGHTH;        }
+void step_sixteenth(void)       { GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | SIXTEENTH;     }
+void step_thirtysecond(void)    { GPIO_PORTB_DATA_R = (GPIO_PORTB_DATA_R&0x1F) | THIRTYSECOND;  }
 //Change 3 bit outputs to stepper motor driver
 void StepOut(){
 	// Have an output enable & an output counter to send x number of pulses
@@ -337,8 +337,8 @@ void ServoFeedback(){
 }
 
 /***********************************************************************************/
-void LaserOn() { GPIO_PORTB_DATA_R |=  0x10; NewDataFlag = 1; }
-void LaserOff(){ GPIO_PORTB_DATA_R &= ~0x10; NewDataFlag = 0; }
+void LaserOn() { GPIO_PORTB_DATA_R |=  0x10;}
+void LaserOff(){ GPIO_PORTB_DATA_R &= ~0x10;}
 void LaserToggle(){ GPIO_PORTB_DATA_R ^= 0x10; NewDataFlag ^= 1; }
 void ActivateGun(){ GPIO_PORTB_DATA_R |= 0x02; FiringFlag = 1; }
 void DeactivateGun(){ GPIO_PORTB_DATA_R &= ~0x02; FiringFlag = 0; }
@@ -379,55 +379,54 @@ int findDelimiterIndex(char *string, int strlen, unsigned char delimit){
 // UART reading and output
 void GetUART(){
 	// Get first "strt" string and check if it correct
-	int  temp = 9000;
+	int temp = 9000;
 	state = 0;
 
 	// Change color to yellow before receiving 4 characters
 	// GPIO_PORTF_DATA_R  = 0x0A;
 
-	state = UART_InString( STRT, 5 );
+	state = UART_InString( UART_IN, 10 );
 
-    if( strcmp( STRT, ""     ) == 0 ){
-        return;
-    }
-
-	if( strcmp( STRT, "none" ) == 0 ){
-        UART_OutString("Error: '");
-        UART_OutString(STRT);
-        UART_OutString("'\r\n'");
+	if( strcmp( UART_IN, "" ) == 0 ){
+		return;
 	}
 
-	delimit_index = findDelimiterIndex( STRT, 5, ':' );
+	if( strcmp( UART_IN, "none" ) == 0 ){
+		UART_OutString("Error: '");
+		UART_OutString(UART_IN);
+		UART_OutString("'\r\n'");
+	}
+
+	delimit_index = findDelimiterIndex( UART_IN, 10, ':' );
 	if ( delimit_index != -1 ){
 		if ( delimit_index != 2 ){
 			UART_OutString("Error: '");
-			UART_OutString(STRT);
+			UART_OutString(UART_IN);
 			UART_OutString("'\r\n'");
 		}
 		else{
 			UART_OutString("Got: '");
-			UART_OutString(STRT);
+			UART_OutString(UART_IN);
 			UART_OutString("'\r\n");
 
-			char header[3] = "";
-			char value_string[5] = "";
+			char header[10] = "";
+			char value_string[10] = "";
 			int value = 0;
-		  strncpy( header, STRT, delimit_index);
-		  header[2] = '\0';
-		  strncpy( value_string, STRT+delimit_index+1, 5);
-		  value_string[4] = '\0';
-
-		  unsigned int place = 1; // one's place, ten's place, hundred's place, etc
-		  int i = 0;
-		  for ( i = strlen(value_string) - 1; i >= 0; i-- ){
-		  	if ( value_string[i] >= 0x30 && value_string[i] <= 0x39 )
+			strncpy( header, UART_IN, delimit_index);
+			header[2] = '\0';
+			strncpy( value_string, UART_IN+delimit_index+1, 10);
+			value_string[4] = '\0';
+			
+			unsigned int place = 1; // one's place, ten's place, hundred's place, etc
+			int i = 0;
+			for ( i = strlen(value_string) - 1; i >= 0; i-- ){
+				if ( value_string[i] >= 0x30 && value_string[i] <= 0x39 )
 				{
-		  		value += ( value_string[i] - 0x30 ) * place;
-		  		place *= 10;
+					value += ( value_string[i] - 0x30 ) * place;
+					place *= 10;
 				}
 			}
 
-		  //int sum = sscanf(value_string, "%d", &value);
 			switch( header[0] )
 			{
 				case 'g':
@@ -440,7 +439,11 @@ void GetUART(){
 					if( header[1] == 'x' )
 						xRed = value;
 					if( header[1] == 'y' )
+					{
 						yRed = value;
+						NewDataFlag = 1; // End of UART packet
+						LaserOn();
+					}
 					break;
 			}
 		}
@@ -478,13 +481,13 @@ void GetData(void){
 	// Red before receiving data
 	//GPIO_PORTF_DATA_R  = 0x02;
 	
-	UART_InString(STRT, 5);
+	UART_InString(UART_IN, 5);
 	
 	// Blue after receiving data
 	//GPIO_PORTF_DATA_R  = 0x04;
 	
 	UART_OutString("Data: ");
-	UART_OutString(STRT);
+	UART_OutString(UART_IN);
 	OutCRLF();
 	
 	// Green after sending data back

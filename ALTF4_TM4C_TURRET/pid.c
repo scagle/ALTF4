@@ -11,16 +11,18 @@ int UpdatePID( PID *pid, int position ){
 
 int getProportionalComponent( PID *pid, int position )
 {
-    return ( pid->K * pid->error );
+    return ( pid->Kp * pid->error );
 }
 
 int getIntegralComponent( PID *pid, int position )
 {
-    pid->reset_register += ( pid->K / (float)pid->time_constant ) * pid->error;
-    return ( pid->K * pid->error + pid->reset_register );
+    pid->reset_register += ( pid->Ki / (float)pid->time_constant ) * pid->error;
+    return ( pid->Ki * pid->error + pid->reset_register );
 }
 
 int getDerivativeComponent( PID *pid, int position )
 {
-    return 0;
+    int d_component = ( pid->Kd * pid->error ) + ( ( pid->Kd / pid->time_constant ) * ( pid->error - pid->last_error ) );
+    pid->last_error = pid->error;
+    return ( d_component );
 }
