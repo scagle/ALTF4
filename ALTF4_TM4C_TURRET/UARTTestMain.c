@@ -32,16 +32,17 @@
 #include "bluetooth.h"
 #include "pid.h"
 /***********************************************************************************/
-#define FULL 				 0x00
-#define HALF 				 0x80
-#define QUARTER 		 0x40
-#define EIGHTH			 0xC0
-#define SIXTEENTH		 0x20
-#define THIRTYSECOND 0xA0
-#define LEFT 				 0x80
-#define RIGHT 			 0x7F
-#define SERVO_MIN    22000
-#define SERVO_MAX    32000
+#define FULL            0x00
+#define HALF            0x80
+#define QUARTER         0x40
+#define EIGHTH          0xC0
+#define SIXTEENTH       0x20
+#define THIRTYSECOND    0xA0
+#define LEFT            0x80
+#define RIGHT           0x7F
+#define SERVO_MIN       22000
+#define SERVO_MAX       32000
+#define SERVO_MAX_SPEED 150
 #define SERVO_RANGE  (SERVO_MAX - SERVO_MIN)
 #define SERVO_MIDDLE (SERVO_MIN + SERVO_RANGE / 2)
 
@@ -61,26 +62,28 @@ unsigned int *servo_command = &yGreen;
 unsigned int *servo_position = &yRed;
 unsigned int *stepper_command = &xGreen;
 unsigned int *stepper_position = &xRed; 	// TODO: Maybe calibrate the X on camera, and use that instead
-int servo_drive = 0;
-int stepper_drive = 0;
+volatile int servo_drive = 0;
+volatile int stepper_drive = 0;
+volatile int current_systick_count = 0;
+int systick_max_count = 100; 		// 20Hz or 0.05seconds
 PID servo_pid = { 
-	.Kp = 3,              // Proportional Constant                
-	.Ki = 10,             // Integral Constant
-	.Kd = 1,              // Derivative Constant
-	.time_constant = 8,   // For integral
-	.error = 0,           // Expected output - Actual Output       
-	.reset_register = 0,  // Accumulated error of integral
-	.last_error = 0       // Track previous error for Derivative
+	.Kp = 1,                // Proportional Constant
+	.Ki = 1,                // Integral Constant
+	.Kd = 5,                // Derivative Constant
+	.time_constant = 150,   // For integral
+	.error = 0,             // Expected output - Actual Output
+	.reset_register = 0,    // Accumulated error of integral
+	.last_error = 0         // Track previous error for Derivative
 };
 
 PID stepper_pid = { 
-	.Kp = 5,              // Proportional Constant                
-	.Ki = 1,              // Integral Constant
-	.Kd = 1,              // Derivative Constant
-	.time_constant = 1,   // For integral
-	.error = 0,           // Expected output - Actual Output       
-	.reset_register = 0,  // Accumulated error of integral
-	.last_error = 0       // Track previous error for Derivative
+	.Kp = 5,                // Proportional Constant
+	.Ki = 1,                // Integral Constant
+	.Kd = 1,                // Derivative Constant
+	.time_constant = 1,     // For integral
+	.error = 0,             // Expected output - Actual Output
+	.reset_register = 0,    // Accumulated error of integral
+	.last_error = 0         // Track previous error for Derivative
 };
 	
 
@@ -96,8 +99,8 @@ char state = 0;
 int delimit_index = 0;
 
 // Servo basic feedback val
-unsigned int servo_pwm = SERVO_MIDDLE;
-unsigned int servo_basic = SERVO_MIDDLE;
+volatile unsigned int servo_pwm = SERVO_MIDDLE;
+volatile unsigned int servo_basic = SERVO_MIDDLE;
 unsigned int range = SERVO_RANGE;
 unsigned int middle = SERVO_MIDDLE;
 
@@ -240,6 +243,20 @@ void SysTick_Handler(void){
 	else{
 		GPIO_PORTC_DATA_R &= 0xBF;
 	}
+
+	// Update PWM Output
+	current_systick_count = (current_systick_count + 1) % systick_max_count;
+	if( current_systick_count == 0 ){
+		servo_pwm += servo_drive;
+
+		// Actuator Output clamping
+		if( servo_pwm < SERVO_MIN )
+			servo_pwm = SERVO_MIN;
+		else if( servo_pwm > SERVO_MAX )
+			servo_pwm = SERVO_MAX;
+
+		PWM1_1_CMPB_R = servo_pwm; 
+	}
 }
 // Functions to change step direction
 void step_left(void) { GPIO_PORTC_DATA_R |=  LEFT; }
@@ -301,40 +318,38 @@ void StepOut(){
 }
 
 /***********************************************************************************/
-// Manually set servo values
-void UpdateServo(unsigned int pwm){ PWM1_1_CMPB_R = pwm; }
 // Basic movement up and down
-void ServoFeedback(){
-	// Assume yGreen and yRed variables already read from UART
-	// Max pwm range of servo [9000, 15000]
-	int diff = yRed - yGreen;
-	int val = 0;
-	
-	// change pwm change value based on range
-	if(abs(diff) > 200)
-		val = 200;
-	else if(abs(diff) > 150)
-		val = 100;
-	else if(abs(diff) > 100)
-		val = 50;
-	else if(abs(diff) > 50)
-		val = 25;
-	else
-		val = 10;
-	
-	// check for negative movement
-	if(diff > 0)
-		val *= -1;
-	
-	servo_basic += val;
-	
-	// check max and min servo values
-	if(servo_basic < 9000) { servo_basic =  9000; }
-	if(servo_basic > 15000){ servo_basic = 15000; }
-	
-	// Update servo position
-	UpdateServo(servo_basic);
-}
+//void ServoFeedback(){
+//	// Assume yGreen and yRed variables already read from UART
+//	// Max pwm range of servo [9000, 15000]
+//	int diff = yRed - yGreen;
+//	int val = 0;
+//	
+//	// change pwm change value based on range
+//	if(abs(diff) > 200)
+//		val = 200;
+//	else if(abs(diff) > 150)
+//		val = 100;
+//	else if(abs(diff) > 100)
+//		val = 50;
+//	else if(abs(diff) > 50)
+//		val = 25;
+//	else
+//		val = 10;
+//	
+//	// check for negative movement
+//	if(diff > 0)
+//		val *= -1;
+//	
+//	servo_basic += val;
+//	
+//	// check max and min servo values
+//	if(servo_basic < 9000) { servo_basic =  9000; }
+//	if(servo_basic > 15000){ servo_basic = 15000; }
+//	
+//	// Update servo position
+//	UpdateServo(servo_basic);
+//}
 
 /***********************************************************************************/
 void LaserOn() { GPIO_PORTB_DATA_R |=  0x10;}
@@ -426,7 +441,6 @@ void GetUART(){
 					place *= 10;
 				}
 			}
-
 			switch( header[0] )
 			{
 				case 'g':
@@ -477,6 +491,7 @@ void GetUART(){
 
 	// Change color to sky blue after receiving 4 characters
 }
+
 void GetData(void){
 	// Red before receiving data
 	//GPIO_PORTF_DATA_R  = 0x02;
@@ -494,36 +509,31 @@ void GetData(void){
 	//GPIO_PORTF_DATA_R  = 0x08;
 }
 
-void OutputServo( PID *pid, int drive ){
+int UpdateServo( PID *pid, int drive ){
 	// Saturation limit clamping 
 	int before_clamp_drive = drive;
-	if( drive > ( SERVO_RANGE / 2) )
-		drive = ( SERVO_RANGE / 2 );
-	else if( drive < -( SERVO_RANGE / 2) )
-		drive = -( SERVO_RANGE / 2 );
+	if( drive > ( SERVO_MAX_SPEED ) )
+		drive = ( SERVO_MAX_SPEED );
+	else if( drive < -( SERVO_MAX_SPEED) )
+		drive = -( SERVO_MAX_SPEED );
 
 	// Prevent Integral Wind-Up after Clamping
 	if( drive != before_clamp_drive ){ 	// If clamping has occurred
 		// Check if Integral is causing wind up
-		if( ( pid->error > 0 ) && ( drive > 0 ) ) // If both positive 
-			pid->reset_register = ( SERVO_RANGE / 2 );
-		if( ( pid->error < 0 ) && ( drive < 0 ) ) // if both negative
-			pid->reset_register = -( SERVO_RANGE / 2 );
+		if( ( pid->error > 0 ) && ( drive > 0 ) ){ // If both positive 
+			pid->reset_register = ( SERVO_MAX_SPEED );
+		}
+		if( ( pid->error < 0 ) && ( drive < 0 ) ){ // if both negative
+			pid->reset_register = -( SERVO_MAX_SPEED );
+		}
 	}
-	// Actuator Command
-	servo_pwm = SERVO_MIDDLE + drive;
 
-	// Actuator Output clamping
-	if( servo_pwm < SERVO_MIN )
-		servo_pwm = SERVO_MIN;
-	else if( servo_pwm > SERVO_MAX )
-		servo_pwm = SERVO_MAX;
-
-    UpdateServo(servo_pwm); // Set PWM1_1 to servo_pwm
+	return ( drive );
 }
 
-void OutputStepper( PID *pid, int drive ){
+int UpdateStepper( PID *pid, int drive ){
 	//UART_OutUDec((unsigned int)drive);
+    return 0;
 }
 
 //debug code
@@ -536,8 +546,8 @@ int main(void){
 	UART_Init();
 	BT_Init();		// Bluetooth UART from the glove
 
-	UpdateServo(servo_pwm); // Set PWM1_1 to servo_pwm
-	//UpdateServo(servo_basic);
+    PWM1_1_CMPB_R = servo_pwm; 
+
 	//step_thirtysecond();
 	//step_full();
 
@@ -555,9 +565,17 @@ int main(void){
 
 		GreenLaserOnFlag = 1; // TODO: Replace this in release
 		// Output to motors
-		if(GreenLaserOnFlag && NewDataFlag){
-			OutputServo( &servo_pid, servo_drive );
-			//OutputStepper( &stepper_pid, stepper_drive );
+		if( GreenLaserOnFlag && NewDataFlag ){
+            // Stop SysTick interrupts temporarily 
+            // ( We don't want interrupts in middle of calculations )
+            NVIC_ST_CTRL_R &= ~0x00000002;
+
+            // Handle Outputs
+			servo_drive = UpdateServo( &servo_pid, servo_drive );
+			//stepper_drive = UpdateStepper( &stepper_pid, stepper_drive );
+			
+            // Start up SysTick interrupts again
+            NVIC_ST_CTRL_R |= 0x00000002;
 		}
 	}
 }
