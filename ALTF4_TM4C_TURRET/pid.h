@@ -3,10 +3,10 @@
 
 typedef struct PID
 {
-    int Kp;                // Proportional Constant
-    int Ki;                // Integral Constant
-    int Kd;                // Derivative Constant
-    int time_constant;     // For integral
+    float Kp;              // Proportional Constant
+    float Ki;              // Integral Constant
+    float Kd;              // Derivative Constant
+    float time_constant;   // For integral
     int error;             // Expected output - Actual Output
     int reset_register;    // Accumulated error of integral
     int last_error;        // Track previous error for Derivative

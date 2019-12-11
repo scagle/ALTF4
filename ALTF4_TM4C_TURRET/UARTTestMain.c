@@ -42,7 +42,7 @@
 #define RIGHT           0x7F
 #define SERVO_MIN       22000
 #define SERVO_MAX       32000
-#define SERVO_MAX_SPEED 150
+#define SERVO_MAX_SPEED 50
 #define SERVO_RANGE  (SERVO_MAX - SERVO_MIN)
 #define SERVO_MIDDLE (SERVO_MIN + SERVO_RANGE / 2)
 
@@ -65,11 +65,11 @@ unsigned int *stepper_position = &xRed; 	// TODO: Maybe calibrate the X on camer
 volatile int servo_drive = 0;
 volatile int stepper_drive = 0;
 volatile int current_systick_count = 0;
-int systick_max_count = 100; 		// 20Hz or 0.05seconds
+int systick_max_count = 100; 		// 100 = 20Hz or 0.05seconds
 PID servo_pid = { 
-	.Kp = 1,                // Proportional Constant
-	.Ki = 1,                // Integral Constant
-	.Kd = 5,                // Derivative Constant
+	.Kp = 1,              // Proportional Constant
+	.Ki = 0,              // Integral Constant
+	.Kd = 0,               // Derivative Constant
 	.time_constant = 150,   // For integral
 	.error = 0,             // Expected output - Actual Output
 	.reset_register = 0,    // Accumulated error of integral
@@ -553,7 +553,7 @@ int main(void){
 
 	while(1){
 		// Get Data
-		//GetBluetooth();  // Handle Glove UART input
+		GetBluetooth();  // Handle Glove UART input
 		GetUART();       // Handle Computer UART input
 		//GetData();     // Echo Data
 

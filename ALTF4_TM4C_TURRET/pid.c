@@ -1,10 +1,13 @@
 #include "pid.h"
+int p_drive = 0;
+int i_drive = 0;
+int d_drive = 0;
 
 int UpdatePID( PID *pid, int position ){
     // Proportional Evaluation
-    int p_drive = getProportionalComponent( pid, position );
-    int i_drive = getIntegralComponent( pid, position );
-    int d_drive = getDerivativeComponent( pid, position );
+    p_drive = getProportionalComponent( pid, position );
+    i_drive = getIntegralComponent( pid, position );
+    d_drive = getDerivativeComponent( pid, position );
 
     return p_drive + i_drive + d_drive;
 }
@@ -16,7 +19,7 @@ int getProportionalComponent( PID *pid, int position )
 
 int getIntegralComponent( PID *pid, int position )
 {
-    pid->reset_register += ( pid->Ki / (float)pid->time_constant ) * pid->error;
+    pid->reset_register += ( pid->Ki / pid->time_constant ) * pid->error;
     return ( pid->Ki * pid->error + pid->reset_register );
 }
 
