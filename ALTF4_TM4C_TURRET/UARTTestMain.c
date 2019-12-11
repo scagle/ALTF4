@@ -367,9 +367,11 @@ void GetBluetooth(){
 	{
 		case 'f':	// Start (F)iring
 			ActivateGun();
+		    step_en = 1;
 			break;
 		case 's':	// (S)top Firing
 			DeactivateGun();
+            step_en = 0;
 			break;
 		case 'h':	// Laser on ( (H)igh )
 			GreenLaserOnFlag = 1;
@@ -548,7 +550,7 @@ int main(void){
 
     PWM1_1_CMPB_R = servo_pwm; 
 
-	//step_thirtysecond();
+	step_thirtysecond();
 	//step_full();
 
 	while(1){
@@ -573,6 +575,7 @@ int main(void){
             // Handle Outputs
 			servo_drive = UpdateServo( &servo_pid, servo_drive );
 			//stepper_drive = UpdateStepper( &stepper_pid, stepper_drive );
+			StepOut();
 			
             // Start up SysTick interrupts again
             NVIC_ST_CTRL_R |= 0x00000002;
